@@ -1,3 +1,3 @@
 # Shtoockie
 
-Repository with some usefull tools.
+Repository with some useful tools.
