@@ -1,26 +1,30 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 
 namespace Shtookie.Matematika
 {
     public struct Number
     {
-        private const long IntegerPart = 10_000_000;
-        private const long DecimalPart = 1_000_000;
+        private const long IntegerPart = 100_000; ////10_000_000
+        private const long DecimalPart = 10_000;////1_000_000;
+        private const int Decimals = 4;
+        private const long MaxNumber = 999999999L;
+        private const long MinNumber = -999999999L;
+
         private static string DecimalSeparator = ".";
         private static char DecimalSeparatorSymbol = '.';
-        private static string DefaultView = GetView(0);
 
-        public static Number Zero = "0.0";
-        public static Number Max = "999999.999999";
-        public static Number Min = "-999999.999999";
+        public static Number Zero = new Number(0L);
+        public static Number Max = new Number(MaxNumber);
+        public static Number Min = new Number(MinNumber);
 
         private readonly long _number;
-        private readonly string _view;
+        private string _view;
 
         /// <summary>
         /// Create new number.
         /// </summary>
-        /// <param name="number">Number in format "-1234567.123456"</param>
+        /// <param name="number">Number in format "-12345.1234"</param>
         public Number(string number)
         {
             _number = 0;
@@ -31,17 +35,19 @@ namespace Shtookie.Matematika
                 return;
             }
 
-            if (!double.TryParse(number, NumberStyles.Integer | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out _))
-            {
-                return;
-            }
-
-            string[] parts = number.Split(DecimalSeparatorSymbol);
+            string[] parts = number.Replace(',', '.').Split(DecimalSeparatorSymbol);
 
             _number = (long.Parse(parts[0]) % IntegerPart) * DecimalPart;
 
-            if ((parts.Length > 1) && long.TryParse(parts[1].PadRight(6, '0').Substring(0, 6), out long decimals))
+            if (parts.Length > 1)
             {
+                long decimals = long.Parse(parts[1].PadRight(Decimals, '0').Substring(0, Decimals));
+
+                if (decimals < 0)
+                {
+                    throw new FormatException();
+                }
+
                 if (_number >= 0)
                 {
                     _number += decimals;
@@ -52,18 +58,29 @@ namespace Shtookie.Matematika
                 }
             }
 
-            _view = GetView(_number);
+            if (_number > MaxNumber)
+            {
+                _number = MaxNumber;
+            }
+            else if (_number < MinNumber)
+            {
+                _number = MinNumber;
+            }
         }
 
         private Number(long number)
         {
             _number = number;
-            _view = GetView(_number);
-        }
+            _view = null;
 
-        private static string GetView(long number)
-        {
-            return (number / DecimalPart).ToString(CultureInfo.InvariantCulture) + DecimalSeparator + (number % DecimalPart).ToString(CultureInfo.InvariantCulture).PadLeft(6, '0');
+            if (_number > MaxNumber)
+            {
+                _number = MaxNumber;
+            }
+            else if (_number < MinNumber)
+            {
+                _number = MinNumber;
+            }
         }
 
         public override bool Equals(object obj)
@@ -100,15 +117,6 @@ namespace Shtookie.Matematika
         {
             long number = (left._number * right._number) / DecimalPart;
             
-            if (number > Max._number)
-            {
-                return Max;
-            }
-            else if (number < Min._number)
-            {
-                return Min;
-            }
-
             return new Number(number);
         }
 
@@ -116,33 +124,28 @@ namespace Shtookie.Matematika
         {
             long number = (left._number * DecimalPart) / right._number;
 
-            if (number > Max._number)
-            {
-                return Max;
-            }
-            else if (number < Min._number)
-            {
-                return Min;
-            }
-
             return new Number(number);
         }
 
         public static Number Sqrt(Number number)
         {
-            long sqrt = (long)System.Math.Sqrt(number._number * DecimalPart);
+            return new Number((long)Math.Sqrt(number._number * DecimalPart));
+        }
 
-            if (sqrt > Max._number)
-            {
-                return Max;
-            }
-
-            return new Number(sqrt);
+        public static Number Abs(Number number)
+        {
+            return new Number(number._number >= 0 ? number._number : (-number._number));
         }
 
         public override string ToString()
         {
-            return _view ?? DefaultView;
+            if (_view == null)
+            {
+                long absNumber = _number >= 0 ? _number : (-_number);
+                _view = (_number / DecimalPart).ToString(CultureInfo.InvariantCulture) + DecimalSeparator + (absNumber % DecimalPart).ToString(CultureInfo.InvariantCulture).PadLeft(Decimals, '0');
+            }
+
+            return _view;
         }
 
         public static implicit operator Number(string number) => new Number(number);
