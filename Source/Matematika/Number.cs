@@ -5,7 +5,7 @@ namespace Shtookie.Matematika
 {
     public struct Number
     {
-        private const long IntegerPart = 100_000; ////10_000_000
+        private const long IntegerPart = 100_000; ////10_000_000;
         private const long DecimalPart = 10_000;////1_000_000;
         private const int Decimals = 4;
         private const long MaxNumber = 999999999L;
