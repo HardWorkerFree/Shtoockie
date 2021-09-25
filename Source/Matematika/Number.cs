@@ -5,13 +5,13 @@ namespace Shtookie.Matematika
 {
     public struct Number
     {
-        private const long IntegerPart = 100_000L;
-        private const long DecimalPart = 1_0000L;
-        private const double DecimalPartD = 1_0000D;
-        private const decimal DecimalPartM = 1_0000M;
-        private const int Decimals = 4;
-        private const long MaxNumber = 100_000_0000L;
-        private const long MinNumber = -100_000_0000L;
+        private const long IntegerPart = 1000_000L;
+        private const long DecimalPart = 1_000L;
+        private const double DecimalPartD = 1_000D;
+        private const decimal DecimalPartM = 1_000M;
+        private const int Decimals = 3;
+        private const long MaxNumber = 1000_000_000L;
+        private const long MinNumber = -1000_000_000L;
 
         private static string DecimalSeparator = ".";
         private static char DecimalSeparatorSymbol = '.';
@@ -71,17 +71,7 @@ namespace Shtookie.Matematika
 
         public override string ToString()
         {
-            return (_value / DecimalPart).ToString(CultureInfo.InvariantCulture) + "." + Math.Abs(_value % DecimalPart).ToString(CultureInfo.InvariantCulture).PadLeft(Decimals, '0'); ;
-        }
-
-        public static bool operator ==(Number left, Number right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(Number left, Number right)
-        {
-            return !left.Equals(right);
+            return (_value / DecimalPart).ToString(CultureInfo.InvariantCulture) + DecimalSeparator + Math.Abs(_value % DecimalPart).ToString(CultureInfo.InvariantCulture).PadLeft(Decimals, '0'); ;
         }
 
         public static Number operator +(Number left, Number right)
@@ -104,6 +94,26 @@ namespace Shtookie.Matematika
             return new Number((left._value * DecimalPart) / right._value);
         }
 
+        public static Number operator ++(Number number)
+        {
+            return new Number(number._value + DecimalPart);
+        }
+
+        public static Number operator --(Number left)
+        {
+            return new Number(left._value - DecimalPart);
+        }
+
+        public static Number operator -(Number left)
+        {
+            return new Number(-left._value);
+        }
+
+        public static Number operator ~(Number number)
+        {
+            return new Number(~number._value);
+        }
+
         public static Number operator &(Number left, Number right)
         {
             return new Number(left._value & right._value);
@@ -119,11 +129,6 @@ namespace Shtookie.Matematika
             return new Number(left._value ^ right._value);
         }
 
-        public static Number operator ~(Number left)
-        {
-            return new Number(~left._value);
-        }
-
         public static Number operator >> (Number left, int right)
         {
             return new Number(left._value >> right);
@@ -134,16 +139,67 @@ namespace Shtookie.Matematika
             return new Number(left._value << right);
         }
 
+        public static bool operator ==(Number left, Number right)
+        {
+            return left._value == right._value;
+        }
+
+        public static bool operator !=(Number left, Number right)
+        {
+            return !(left._value == right._value);
+        }
+
+        public static bool operator >(Number left, Number right)
+        {
+            return left._value > right._value;
+        }
+
+        public static bool operator >=(Number left, Number right)
+        {
+            return left._value >= right._value;
+        }
+
+        public static bool operator <(Number left, Number right)
+        {
+            return left._value < right._value;
+        }
+
+        public static bool operator <=(Number left, Number right)
+        {
+            return left._value <= right._value;
+        }
+
         #endregion // Basic operators
 
         public static Number Sqrt(Number number)
         {
-            return new Number((long)Math.Sqrt(number._value * DecimalPart));
+            if (number._value <= 0L)
+            {
+                return new Number(0L);
+            }
+
+            long square = number._value * DecimalPart;
+            long root = square / 30L; //eanote little bit more than square root of 1L * Decimal part.
+            long previous = root;
+
+            for (int i = 0; i < 20; i++)
+            {
+                root = (root + square / root) >> 1;
+
+                if (previous <= root)
+                {
+                    return new Number((previous == root) ? root : previous);
+                }
+
+                previous = root;
+            }
+
+            return new Number(root);
         }
 
         public static Number Abs(Number number)
         {
-            return new Number(number._value >= 0 ? number._value : (-number._value));
+            return new Number(Math.Abs(number._value));
         }
 
         private static long CorrectNumber(long number)
