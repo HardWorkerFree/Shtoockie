@@ -1,5 +1,4 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace Shtookie.Matematika
 {
@@ -151,7 +150,7 @@ namespace Shtookie.Matematika
 
         public static bool operator !=(Number left, Number right)
         {
-            return !(left._value == right._value);
+            return left._value != right._value;
         }
 
         public static bool operator >(Number left, Number right)

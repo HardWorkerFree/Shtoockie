@@ -43,7 +43,7 @@
 
         public static bool operator !=(Text left, Text right)
         {
-            return !(left._value == right._value);
+            return left._value != right._value;
         }
 
         public static Text operator +(Text left, Text right)
