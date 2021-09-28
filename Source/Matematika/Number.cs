@@ -61,7 +61,12 @@ namespace Shtookie.Matematika
 
         public override bool Equals(object obj)
         {
-            return _value.Equals(obj);
+            if (obj is Number number)
+            {
+                return this._value == number._value;
+            }
+
+            return false;
         }
 
         public override int GetHashCode()
@@ -71,7 +76,7 @@ namespace Shtookie.Matematika
 
         public override string ToString()
         {
-            return (_value / DecimalPart).ToString(CultureInfo.InvariantCulture) + DecimalSeparator + Math.Abs(_value % DecimalPart).ToString(CultureInfo.InvariantCulture).PadLeft(Decimals, '0'); ;
+            return (_value / DecimalPart).ToString(CultureInfo.InvariantCulture) + DecimalSeparator + Abs(_value % DecimalPart).ToString(CultureInfo.InvariantCulture).PadLeft(Decimals, '0'); ;
         }
 
         public static Number operator +(Number left, Number right)
@@ -199,7 +204,12 @@ namespace Shtookie.Matematika
 
         public static Number Abs(Number number)
         {
-            return new Number(Math.Abs(number._value));
+            return new Number(Abs(number._value));
+        }
+
+        private static long Abs(long value)
+        {
+            return (value + (value >> 63)) ^ (value >> 63);
         }
 
         private static long CorrectNumber(long number)
