@@ -2,9 +2,9 @@
 
 namespace Shtookie.Matematika
 {
-    public struct Number
+    public readonly struct Number
     {
-        private const long IntegerPart = 1000_000L;
+        private const long IntegerPart = 1_000_000L;
         private const long DecimalPart = 1_000L;
         private const double DecimalPartD = 1_000D;
         private const decimal DecimalPartM = 1_000M;
@@ -15,9 +15,14 @@ namespace Shtookie.Matematika
         private static string DecimalSeparator = ".";
         private static char DecimalSeparatorSymbol = '.';
 
-        public static Number Zero = new Number(0L);
-        public static Number Max = new Number(MaxNumber);
-        public static Number Min = new Number(MinNumber);
+        private static readonly Number _zero = new Number(0L);
+        public static Number Zero => _zero;
+
+        private static readonly Number _max = new Number(MaxNumber);
+        public static Number Max => _max;
+
+        public static readonly Number _min = new Number(MinNumber);
+        public static Number Min => _min;
 
         private readonly long _value;
 
@@ -58,6 +63,8 @@ namespace Shtookie.Matematika
         public static implicit operator double(Number number) => (double)number._value / DecimalPartD;
         public static implicit operator decimal(Number number) => (decimal)number._value / DecimalPartM;
 
+        public static implicit operator string(Number number) => number.ToString();
+
         public override bool Equals(object obj)
         {
             if (obj is Number number)
@@ -66,6 +73,11 @@ namespace Shtookie.Matematika
             }
 
             return false;
+        }
+
+        public bool Equals(Number number)
+        {
+            return this._value == number._value;
         }
 
         public override int GetHashCode()
@@ -96,6 +108,11 @@ namespace Shtookie.Matematika
         public static Number operator /(Number left, Number right)
         {
             return new Number((left._value * DecimalPart) / right._value);
+        }
+
+        public static Number operator %(Number left, Number right)
+        {
+            return new Number(left._value % right._value);
         }
 
         public static Number operator ++(Number number)

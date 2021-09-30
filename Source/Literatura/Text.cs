@@ -1,6 +1,6 @@
 ﻿namespace Shtoockie.Literatura
 {
-    public struct Text
+    public readonly struct Text
     {   private readonly bool _hasValue;
         private readonly string _value;
 
