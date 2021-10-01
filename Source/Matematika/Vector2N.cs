@@ -101,30 +101,30 @@ namespace Shtoockie.Matematika
 
         #endregion // Basic operators
 
-        public static Vector2N Abs(Vector2N vector)
-        {
-            return new Vector2N(Number.Abs(vector._x), Number.Abs(vector._y));
-        }
-
-        public static Vector2N Normalize(Vector2N vector)
-        {
-            Number length = Number.Sqrt((vector._x * vector._x) + (vector._y * vector._y));
-            return new Vector2N(vector._x / length, vector._y / length);
-        }
-
-        public static Number LengthSquared(Vector2N vector)
-        {
-            return (vector._x * vector._x) + (vector._y * vector._y);
-        }
-
-        public static Number Length(Vector2N vector)
-        {
-            return Number.Sqrt((vector._x * vector._x) + (vector._y * vector._y));
-        }
-
         public static Number Dot(Vector2N left, Vector2N right)
         {
             return (left._x * right._x) + (left._y * right._y);
+        }
+
+        public Vector2N Abs()
+        {
+            return new Vector2N(_x.Abs(), _y.Abs());
+        }
+
+        public Vector2N Normalize()
+        {
+            Number length = ((_x * _x) + (_y * _y)).Sqrt();
+            return new Vector2N(_x / length, _y / length);
+        }
+
+        public Number LengthSquared()
+        {
+            return (_x * _x) + (_y * _y);
+        }
+
+        public Number Length()
+        {
+            return ((_x * _x) + (_y * _y)).Sqrt();
         }
     }
 }

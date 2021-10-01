@@ -9,50 +9,50 @@ namespace Shtookie.Matematika
         private const double DecimalPartD = 1_000D;
         private const decimal DecimalPartM = 1_000M;
         private const int Decimals = 3;
-        private const long MaxNumber = 1000_000_000L;
-        private const long MinNumber = -1000_000_000L;
+        private const long MaxNumber = 1_000_000_000L;
+        private const long MinNumber = -1_000_000_000L;
 
         private static string DecimalSeparator = ".";
         private static char DecimalSeparatorSymbol = '.';
 
-        private static readonly Number _zero = new Number(0L);
+        private static readonly Number _zero = new Number(0L, true);
         public static Number Zero => _zero;
 
-        private static readonly Number _max = new Number(MaxNumber);
+        private static readonly Number _max = new Number(MaxNumber, true);
         public static Number Max => _max;
 
-        public static readonly Number _min = new Number(MinNumber);
+        public static readonly Number _min = new Number(MinNumber, true);
         public static Number Min => _min;
 
         private readonly long _value;
 
         #region Constructors
 
-        private Number(long number)
+        private Number(long number, bool isCorrectionRequired)
         {
-            _value = CorrectNumber(number);
+            _value = isCorrectionRequired ? CorrectValue(number) : number;
         }
 
         public Number(int number)
         {
-            _value = CorrectNumber(number * DecimalPart);
+            _value = CorrectValue(number * DecimalPart);
         }
 
         public Number(double number)
         {
-            _value = CorrectNumber((long)(number * DecimalPartD));
+            _value = CorrectValue((long)(number * DecimalPartD));
         }
 
         public Number(decimal number)
         {
-            _value = CorrectNumber((long)(number * DecimalPartM));
+            _value = CorrectValue((long)(number * DecimalPartM));
         }
 
         #endregion // Constructors
 
         #region Basic operators
 
-        public static implicit operator Number(long number) => new Number(number);
+        public static implicit operator Number(long number) => new Number(number, true);
         public static implicit operator long(Number number) => number._value;
 
         public static implicit operator Number(int number) => new Number(number);
@@ -92,72 +92,72 @@ namespace Shtookie.Matematika
 
         public static Number operator +(Number left, Number right)
         {
-            return new Number(left._value + right._value);
+            return new Number(left._value + right._value, false);
         }
 
         public static Number operator -(Number left, Number right)
         {
-            return new Number(left._value - right._value);
+            return new Number(left._value - right._value, false);
         }
 
         public static Number operator *(Number left, Number right)
         {
-            return new Number((left._value * right._value) / DecimalPart);
+            return new Number((left._value * right._value) / DecimalPart, false);
         }
 
         public static Number operator /(Number left, Number right)
         {
-            return new Number((left._value * DecimalPart) / right._value);
+            return new Number((left._value * DecimalPart) / right._value, false);
         }
 
         public static Number operator %(Number left, Number right)
         {
-            return new Number(left._value % right._value);
+            return new Number(left._value % right._value, false);
         }
 
         public static Number operator ++(Number number)
         {
-            return new Number(number._value + DecimalPart);
+            return new Number(number._value + DecimalPart, false);
         }
 
         public static Number operator --(Number left)
         {
-            return new Number(left._value - DecimalPart);
+            return new Number(left._value - DecimalPart, false);
         }
 
         public static Number operator -(Number left)
         {
-            return new Number(-left._value);
+            return new Number(-left._value, false);
         }
 
         public static Number operator ~(Number number)
         {
-            return new Number(~number._value);
+            return new Number(~number._value, false);
         }
 
         public static Number operator &(Number left, Number right)
         {
-            return new Number(left._value & right._value);
+            return new Number(left._value & right._value, false);
         }
 
         public static Number operator |(Number left, Number right)
         {
-            return new Number(left._value | right._value);
+            return new Number(left._value | right._value, false);
         }
 
         public static Number operator ^(Number left, Number right)
         {
-            return new Number(left._value ^ right._value);
+            return new Number(left._value ^ right._value, false);
         }
 
         public static Number operator >> (Number left, int right)
         {
-            return new Number(left._value >> right);
+            return new Number(left._value >> right, false);
         }
 
         public static Number operator <<(Number left, int right)
         {
-            return new Number(left._value << right);
+            return new Number(left._value << right, false);
         }
 
         public static bool operator ==(Number left, Number right)
@@ -192,14 +192,14 @@ namespace Shtookie.Matematika
 
         #endregion // Basic operators
 
-        public static Number Sqrt(Number number)
+        public Number Sqrt()
         {
-            if (number._value <= 0L)
+            if (this._value <= 0L)
             {
-                return new Number(0L);
+                return Number.Zero;
             }
 
-            long square = number._value * DecimalPart;
+            long square = this._value * DecimalPart;
             long root = square / 30L; //eanote little bit more than square root of 1L * Decimal part.
             long previous = root;
 
@@ -209,18 +209,18 @@ namespace Shtookie.Matematika
 
                 if (previous <= root)
                 {
-                    return new Number((previous == root) ? root : previous);
+                    return new Number((previous == root) ? root : previous, false);
                 }
 
                 previous = root;
             }
 
-            return new Number(root);
+            return new Number(root, false);
         }
 
-        public static Number Abs(Number number)
+        public Number Abs()
         {
-            return new Number(Abs(number._value));
+            return new Number(Abs(this._value), false);
         }
 
         private static long Abs(long value)
@@ -228,18 +228,18 @@ namespace Shtookie.Matematika
             return (value + (value >> 63)) ^ (value >> 63);
         }
 
-        private static long CorrectNumber(long number)
+        private static long CorrectValue(long value)
         {
-            if (number > MaxNumber)
+            if (value > MaxNumber)
             {
                 return MaxNumber;
             }
-            else if (number < MinNumber)
+            else if (value < MinNumber)
             {
                 return MinNumber;
             }
 
-            return number;
+            return value;
         }
     }
 }
