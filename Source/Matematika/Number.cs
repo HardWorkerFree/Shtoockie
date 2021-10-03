@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 
 namespace Shtookie.Matematika
 {
@@ -6,6 +7,7 @@ namespace Shtookie.Matematika
     {
         private const long IntegerPart = 1_000_000L;
         private const long DecimalPart = 1_000L;
+        private const float DecimalPartF = 1_000F;
         private const double DecimalPartD = 1_000D;
         private const decimal DecimalPartM = 1_000M;
         private const int Decimals = 3;
@@ -38,6 +40,11 @@ namespace Shtookie.Matematika
             _value = CorrectValue(number * DecimalPart);
         }
 
+        public Number(float number)
+        {
+            _value = CorrectValue((long)(number * DecimalPartF));
+        }
+
         public Number(double number)
         {
             _value = CorrectValue((long)(number * DecimalPartD));
@@ -50,20 +57,32 @@ namespace Shtookie.Matematika
 
         #endregion // Constructors
 
-        #region Basic operators
+        #region Implicit operators
 
         public static implicit operator Number(long number) => new Number(number, true);
         public static implicit operator long(Number number) => number._value;
 
         public static implicit operator Number(int number) => new Number(number);
+        public static implicit operator Number(float number) => new Number(number);
         public static implicit operator Number(double number) => new Number(number);
         public static implicit operator Number(decimal number) => new Number(number);
 
         public static implicit operator int(Number number) => (int)(number._value / DecimalPart);
+        public static implicit operator float(Number number) => (float)number._value / DecimalPartF;
         public static implicit operator double(Number number) => (double)number._value / DecimalPartD;
         public static implicit operator decimal(Number number) => (decimal)number._value / DecimalPartM;
 
         public static implicit operator string(Number number) => number.ToString();
+
+        public static implicit operator Number(DateTime dateTime) => new Number(dateTime.Ticks / TimeSpan.TicksPerMillisecond, true);
+        public static implicit operator DateTime(Number number) => Convert(number);
+
+        public static implicit operator Number(TimeSpan timeSpan) => new Number(timeSpan.Ticks / TimeSpan.TicksPerMillisecond, true);
+        public static implicit operator TimeSpan(Number number) => TimeSpan.FromTicks(number._value * TimeSpan.TicksPerMillisecond);
+
+        #endregion // Implicit operators
+
+        #region Basic operators
 
         public override bool Equals(object obj)
         {
@@ -240,6 +259,23 @@ namespace Shtookie.Matematika
             }
 
             return value;
+        }
+
+        private static DateTime Convert(Number number)
+        {
+            long ticks = number._value * TimeSpan.TicksPerMillisecond;
+
+            if (ticks > 0L)
+            {
+                if (ticks > DateTime.MaxValue.Ticks)
+                {
+                    return DateTime.MaxValue;
+                }
+
+                return new DateTime(ticks);
+            }
+
+            return new DateTime(0L);
         }
     }
 }
