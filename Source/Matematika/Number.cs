@@ -74,10 +74,10 @@ namespace Shtookie.Matematika
 
         public static implicit operator string(Number number) => number.ToString();
 
-        public static implicit operator Number(DateTime dateTime) => new Number(dateTime.Ticks / TimeSpan.TicksPerMillisecond, true);
+        public static implicit operator Number(DateTime dateTime) => new Number(dateTime.Ticks / TimeSpan.TicksPerMillisecond, false);
         public static implicit operator DateTime(Number number) => Convert(number);
 
-        public static implicit operator Number(TimeSpan timeSpan) => new Number(timeSpan.Ticks / TimeSpan.TicksPerMillisecond, true);
+        public static implicit operator Number(TimeSpan timeSpan) => new Number(timeSpan.Ticks / TimeSpan.TicksPerMillisecond, false);
         public static implicit operator TimeSpan(Number number) => TimeSpan.FromTicks(number._value * TimeSpan.TicksPerMillisecond);
 
         #endregion // Implicit operators
