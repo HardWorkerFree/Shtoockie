@@ -1,25 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.30717.126
+VisualStudioVersion = 16.0.31729.503
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shtoockie", "Shtoockie.csproj", "{F6C9D937-C7A8-4269-9E62-28C9627C2C30}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shtoockie", "Shtoockie.csproj", "{DECD3081-78F6-4220-9449-C4F190EA6E78}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		Debug|ARM64 = Debug|ARM64
+		Debug|x64 = Debug|x64
+		Release|ARM64 = Release|ARM64
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F6C9D937-C7A8-4269-9E62-28C9627C2C30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F6C9D937-C7A8-4269-9E62-28C9627C2C30}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F6C9D937-C7A8-4269-9E62-28C9627C2C30}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F6C9D937-C7A8-4269-9E62-28C9627C2C30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DECD3081-78F6-4220-9449-C4F190EA6E78}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{DECD3081-78F6-4220-9449-C4F190EA6E78}.Debug|ARM64.Build.0 = Debug|ARM64
+		{DECD3081-78F6-4220-9449-C4F190EA6E78}.Debug|x64.ActiveCfg = Debug|x64
+		{DECD3081-78F6-4220-9449-C4F190EA6E78}.Debug|x64.Build.0 = Debug|x64
+		{DECD3081-78F6-4220-9449-C4F190EA6E78}.Release|ARM64.ActiveCfg = Release|ARM64
+		{DECD3081-78F6-4220-9449-C4F190EA6E78}.Release|ARM64.Build.0 = Release|ARM64
+		{DECD3081-78F6-4220-9449-C4F190EA6E78}.Release|x64.ActiveCfg = Release|x64
+		{DECD3081-78F6-4220-9449-C4F190EA6E78}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {5602A62B-C12B-49F9-B1F2-3AD8F9965659}
+		SolutionGuid = {064EA30A-C6C4-4C47-866A-A6DD4ED3972C}
 	EndGlobalSection
 EndGlobal
