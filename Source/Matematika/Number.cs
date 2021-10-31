@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace Shtookie.Matematika
+namespace Shtoockie.Matematika
 {
     public readonly struct Number
     {
@@ -55,19 +55,20 @@ namespace Shtookie.Matematika
             _value = CorrectValue((long)(number * DecimalPartM));
         }
 
+        public static Number FromExact(long number) => new Number(number, true);
+        public static long ToExact(Number number) => number._value;
+
+        public static Number FromInteger(int number) => new Number(number);
+        public static int ToInteger(Number number) => (int)(number._value / DecimalPart);
+
         #endregion // Constructors
 
         #region Implicit operators
 
-        public static implicit operator Number(long number) => new Number(number, true);
-        public static implicit operator long(Number number) => number._value;
-
-        public static implicit operator Number(int number) => new Number(number);
         public static implicit operator Number(float number) => new Number(number);
         public static implicit operator Number(double number) => new Number(number);
         public static implicit operator Number(decimal number) => new Number(number);
 
-        public static implicit operator int(Number number) => (int)(number._value / DecimalPart);
         public static implicit operator float(Number number) => (float)number._value / DecimalPartF;
         public static implicit operator double(Number number) => (double)number._value / DecimalPartD;
         public static implicit operator decimal(Number number) => (decimal)number._value / DecimalPartM;

@@ -1,10 +1,10 @@
-﻿using Shtookie.Matematika;
+﻿using Shtoockie.Matematika;
 
 namespace Shtoockie.Matematika
 {
     public readonly struct Vector2N
     {
-        private static readonly Vector2N _zero = new Vector2N(0L, 0L);
+        private static readonly Vector2N _zero = new Vector2N(Number.Zero, Number.Zero);
         public static Vector2N Zero => _zero;
 
         private readonly Number _x;
@@ -46,7 +46,7 @@ namespace Shtoockie.Matematika
 
         public override int GetHashCode()
         {
-            return ((_x << 5) + _x) ^ _y;
+            return (int)Number.ToExact(((_x << 5) + _x) ^ _y);
         }
 
         public override string ToString()
