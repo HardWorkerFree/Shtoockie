@@ -74,7 +74,7 @@ namespace Shtoockie.Kod
 
             if (!EqualityComparer<TValue>.Default.Equals(_previousValue, _currentValue))
             {
-                _changeHandler?.Invoke();
+                _changeHandler();
 
                 _previousValue = _currentValue;
             }
