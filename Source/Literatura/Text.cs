@@ -1,10 +1,13 @@
 ﻿namespace Shtoockie.Literatura
 {
     public readonly struct Text
-    {   private readonly bool _hasValue;
+    {
+        private readonly bool _hasValue;
         private readonly string _value;
 
         public static Text Empty = new Text(); 
+
+        public bool IsEmpty => string.IsNullOrEmpty(_value);
 
         #region Constructors
 
@@ -13,7 +16,7 @@
             _hasValue = !string.IsNullOrEmpty(text);
             _value = _hasValue ? text : string.Empty;
         }
-
+         
         #endregion // Constructors
 
         #region Basic operators
@@ -52,5 +55,28 @@
         }
 
         #endregion // Basic operators
+
+        #region Methods
+
+        public Text[] Split(char splitter)
+        {
+            if (!_hasValue)
+            {
+                return new Text[0];
+            }
+
+            string[] values = _value.Split(splitter);
+
+            Text[] result = new Text[values.Length];
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                result[i] = new Text(values[i]);
+            }
+
+            return result;
+        }
+
+        #endregion // Methods
     }
 }
