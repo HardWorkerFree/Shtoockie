@@ -1,32 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Shtoockie.Kod
 {
-    public class Trigger<TObservable> : ITrigger
+    public class MultiTrigger : ITrigger
     {
-        private PropertyObserver<TObservable> _observer;
+        readonly List<IPropertyObserver> _observers;
 
         private Action _observableChangeHandler;
 
-        private Trigger(PropertyObserver<TObservable> observer, Action observableChangeHandler)
+        public MultiTrigger(Action observableChangeHandler)
         {
-            _observer = observer ?? throw new ArgumentNullException(nameof(observer));
+            _observers = new List<IPropertyObserver>();
             _observableChangeHandler = observableChangeHandler ?? DefaultHandle;
         }
 
-        public Trigger(object source, string sourcePropertyName)
-            : this(new PropertyObserver<TObservable>(source, sourcePropertyName), null)
+        public MultiTrigger Observe<TObservable>(object source, string sourcePropertyName)
         {
-        }
+            IPropertyObserver observer = new PropertyObserver<TObservable>(source, sourcePropertyName);
+            _observers.Add(observer);
 
-        public Trigger(object source, string sourcePropertyName, Action observableChangeHandler)
-            : this(new PropertyObserver<TObservable>(source, sourcePropertyName), observableChangeHandler)
-        {
+            return this;
         }
 
         public void SetupChangeHandler(Action observableChangeHandler)
@@ -40,9 +37,14 @@ namespace Shtoockie.Kod
 
         public void Check()
         {
-            _observer.Check();
+            bool isAnyChanged = false;
+            for (int i = 0; i < _observers.Count; i++)
+            {
+                _observers[i].Check();
+                isAnyChanged |= _observers[i].IsChanged;
+            }
 
-            if (_observer.IsChanged)
+            if (isAnyChanged)
             {
                 Fire();
             }
