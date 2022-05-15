@@ -10,12 +10,12 @@ namespace Shtoockie.Kod
     {
         readonly List<IPropertyObserver> _observers;
 
-        private Action _observableChangeHandler;
+        private Action[] _observableChangeHandlers;
 
-        public MultiTrigger(Action observableChangeHandler)
+        public MultiTrigger(params Action[] observableChangeHandlers)
         {
             _observers = new List<IPropertyObserver>();
-            _observableChangeHandler = observableChangeHandler ?? DefaultHandle;
+            _observableChangeHandlers = observableChangeHandlers ?? new Action[0];
         }
 
         public MultiTrigger Observe<TObservable>(object source, string sourcePropertyName)
@@ -26,13 +26,9 @@ namespace Shtoockie.Kod
             return this;
         }
 
-        public void SetupChangeHandler(Action observableChangeHandler)
+        public void SetupChangeHandler(params Action[] observableChangeHandlers)
         {
-            _observableChangeHandler = observableChangeHandler ?? DefaultHandle;
-        }
-
-        private void DefaultHandle()
-        {
+            _observableChangeHandlers = observableChangeHandlers ?? new Action[0];
         }
 
         public void Check()
@@ -52,7 +48,10 @@ namespace Shtoockie.Kod
 
         public void Fire()
         {
-            _observableChangeHandler?.Invoke();
+            for (int i = 0; i < _observableChangeHandlers.Length; i++)
+            {
+                _observableChangeHandlers[i]?.Invoke();
+            }
         }
     }
 }
