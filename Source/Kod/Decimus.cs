@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System;
+using Shtoockie.Matematika;
 
 namespace Shtoockie.Kod
 {
@@ -121,6 +122,51 @@ namespace Shtoockie.Kod
             {
                 return $"{_number}E{_exponent}"; //надо 5.321123E-20
             }
+        }
+
+        public Decimus Add(Decimus other)
+        {
+            if (this._number == 0L)
+            {
+                return other;
+            }
+            else if (other._number == 0L)
+            {
+                return this;
+            }
+
+            int exponentDelta = this._exponent - other._exponent;
+
+            if (exponentDelta >= 0)
+            {
+                if (exponentDelta < MaximumOffsetPower)
+                {
+                    return new Decimus((long)this._number + ((long)other._number / Powers[exponentDelta]), this._exponent);
+                }
+                else
+                {
+                    return this;
+                }
+            }
+
+            if (exponentDelta > MaximumOffsetPowerNegative)
+            {
+                return new Decimus(((long)this._number / Powers[-exponentDelta]) + (long)other._number, other._exponent);
+            }
+            else
+            {
+                return other;
+            }
+        }
+
+        public Decimus Multiply(Decimus other)
+        {
+            if (this._number == 0 || other._number == 0)
+            {
+                return Decimus.Zero;
+            }
+
+            return new Decimus((long)this._number * (long)other._number, this._exponent + other._exponent);
         }
     }
 }
