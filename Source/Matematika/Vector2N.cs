@@ -4,24 +4,24 @@ namespace Shtoockie.Matematika
 {
     public readonly struct Vector2N
     {
-        private static readonly Vector2N _zero = new Vector2N(Number.Zero, Number.Zero);
+        private static readonly Vector2N _zero = new Vector2N(Numerus.Zero, Numerus.Zero);
         public static Vector2N Zero => _zero;
 
-        private readonly Number _x;
-        public Number X => _x;
+        private readonly Numerus _x;
+        public Numerus X => _x;
 
-        private readonly Number _y;
-        public Number Y => _y;
+        private readonly Numerus _y;
+        public Numerus Y => _y;
 
         #region Constructors
 
-        public Vector2N(Number x, Number y)
+        public Vector2N(Numerus x, Numerus y)
         {
             _x = x;
             _y = y;
         }
 
-        public Vector2N(Number value) : this(value, value)
+        public Vector2N(Numerus value) : this(value, value)
         {
         }
 
@@ -46,7 +46,7 @@ namespace Shtoockie.Matematika
 
         public override int GetHashCode()
         {
-            return (int)Number.ToExact(((_x << 5) + _x) ^ _y);
+            return (int)Numerus.ToExact(((_x << 5) + _x) ^ _y);
         }
 
         public override string ToString()
@@ -79,12 +79,12 @@ namespace Shtoockie.Matematika
             return new Vector2N(left._x * right._x, left._y * right._y);
         }
 
-        public static Vector2N operator *(Vector2N left, Number right)
+        public static Vector2N operator *(Vector2N left, Numerus right)
         {
             return new Vector2N(left._x * right, left._y * right);
         }
 
-        public static Vector2N operator *(Number left, Vector2N right)
+        public static Vector2N operator *(Numerus left, Vector2N right)
         {
             return new Vector2N(left * right._x, left * right._y);
         }
@@ -94,14 +94,14 @@ namespace Shtoockie.Matematika
             return new Vector2N(left._x / right._x, left._y / right._y);
         }
 
-        public static Vector2N operator /(Vector2N left, Number right)
+        public static Vector2N operator /(Vector2N left, Numerus right)
         {
             return new Vector2N(left._x / right, left._y / right);
         }
 
         #endregion // Basic operators
 
-        public static Number Dot(Vector2N left, Vector2N right)
+        public static Numerus Dot(Vector2N left, Vector2N right)
         {
             return (left._x * right._x) + (left._y * right._y);
         }
@@ -113,16 +113,16 @@ namespace Shtoockie.Matematika
 
         public Vector2N Normalize()
         {
-            Number length = ((_x * _x) + (_y * _y)).Sqrt();
+            Numerus length = ((_x * _x) + (_y * _y)).Sqrt();
             return new Vector2N(_x / length, _y / length);
         }
 
-        public Number LengthSquared()
+        public Numerus LengthSquared()
         {
             return (_x * _x) + (_y * _y);
         }
 
-        public Number Length()
+        public Numerus Length()
         {
             return ((_x * _x) + (_y * _y)).Sqrt();
         }
