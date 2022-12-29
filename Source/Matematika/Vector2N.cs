@@ -46,7 +46,7 @@ namespace Shtoockie.Matematika
 
         public override int GetHashCode()
         {
-            return (int)Numerus.ToExact(((_x << 5) + _x) ^ _y);
+            return (((_x << 5) + _x) ^ _y).GetHashCode();
         }
 
         public override string ToString()
