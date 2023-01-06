@@ -229,9 +229,80 @@ namespace Shtoockie.Matematika
             return new Numerus(root);
         }
 
+        public Numerus FSqrt()
+        {
+            if (this._value <= 0L)
+            {
+                return Numerus.Zero;
+            }
+
+            long square = this._value * DecimalPart;
+            int powerOfTwo = 19;
+            long root = square >> powerOfTwo;
+
+            while (root > 0)
+            {
+                if (root < 32L)
+                {
+                    root >>= 1;
+                    powerOfTwo += 1;
+                }
+                else if (root < 1_024L)
+                {
+                    root >>= 5;
+                    powerOfTwo += 5;
+                }
+                else if (root < 1_048_576L)
+                {
+                    root >>= 10;
+                    powerOfTwo += 10;
+                }
+                else if (root < int.MaxValue)
+                {
+                    root >>= 15;
+                    powerOfTwo += 15;
+                }
+                else
+                {
+                    root >>= 20;
+                    powerOfTwo += 20;
+                }
+            }
+
+            powerOfTwo >>= 1;
+
+            root = square >> powerOfTwo;
+
+            long previous = square;
+            long rootDivision = 1L;
+
+            while (true)
+            {
+                rootDivision = square / root;
+                root = rootDivision + root;
+                root = root >> 1;
+
+                if (previous == root)
+                {
+                    return new Numerus(root);
+                }
+                else if (previous < root)
+                {
+                    return new Numerus(previous);
+                }
+
+                previous = root;
+            }
+        }
+
         public Numerus Abs()
         {
             return new Numerus(Abs(this._value));
+        }
+
+        public Numerus FAbs()
+        {
+            return (this._value >= 0) ? this : -this;
         }
 
         private static long Abs(long value)
