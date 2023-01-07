@@ -197,39 +197,7 @@ namespace Shtoockie.Matematika
 
         #endregion // Basic operators
 
-#warning rework required
         public Numerus Sqrt()
-        {
-            //return Math.Sqrt(this);
-
-            if (this._value <= 0L)
-            {
-                return Numerus.Zero;
-            }
-
-            long square = this._value * DecimalPart;
-            long root = square << 10; //eanote little bit less than square root of 1L * Decimal part.
-            long previous = root;
-            long rootDivision = 1L;
-
-            for (int i = 0; i < 44; i++)
-            {
-                rootDivision = square / root;
-                root = rootDivision + root;
-                root = root >> 1;
-
-                if (previous <= root)
-                {
-                    return new Numerus((previous == root) ? root : previous);
-                }
-
-                previous = root;
-            }
-
-            return new Numerus(root);
-        }
-
-        public Numerus FSqrt()
         {
             if (this._value <= 0L)
             {
@@ -271,6 +239,8 @@ namespace Shtoockie.Matematika
 
             powerOfTwo >>= 1;
 
+            //eanote use "root = (long)Math.Sqrt(square * DecimalPart);" if you want increase perfomance by ten times, but inaccurate on large numbers
+
             root = square >> powerOfTwo;
 
             long previous = square;
@@ -297,17 +267,13 @@ namespace Shtoockie.Matematika
 
         public Numerus Abs()
         {
-            return new Numerus(Abs(this._value));
-        }
-
-        public Numerus FAbs()
-        {
             return (this._value >= 0) ? this : -this;
         }
 
         private static long Abs(long value)
         {
-            return (value + (value >> 63)) ^ (value >> 63);
+            //eanote return (value + (value >> 63)) ^ (value >> 63);
+            return (value >= 0) ? value : -value;
         }
 
         private static DateTime Convert(Numerus numerus)
