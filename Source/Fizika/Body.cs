@@ -33,5 +33,10 @@ namespace Shtoockie.Fizika
 		}
 
 		public abstract bool CheckIntersection(RoundBody other);
+
+		public virtual void Move(Numerus deltaTime)
+		{
+			_position *= deltaTime;
+		}
 	}
 }

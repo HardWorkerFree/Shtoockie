@@ -50,7 +50,7 @@ namespace Shtoockie.Kod
 
         public void Fire()
         {
-            _observableChangeHandler?.Invoke();
+            _observableChangeHandler.Invoke();
         }
     }
 }
