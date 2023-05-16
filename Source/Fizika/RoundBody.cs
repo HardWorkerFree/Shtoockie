@@ -16,13 +16,14 @@ namespace Shtoockie.Fizika
 			: base(mass, position, movement)
 		{
 			_radius = radius;
-		}
+        }
 
         public override bool CheckIntersection(RoundBody other)
         {
-            Numerus distance = (this.Position + other.Position).Length();
+            Numerus distanceSquared = (this.Position + other.Position).LengthSquared();
+			Numerus minimalDistance = this._radius + other._radius;
 
-			return (distance - this._radius - other._radius) < Numerus.Zero;
+            return (distanceSquared - (minimalDistance * minimalDistance)) < Numerus.Zero;
         }
     }
 }
