@@ -34,9 +34,19 @@ namespace Shtoockie.Fizika
 
 		public abstract bool CheckIntersection(RoundBody other);
 
+		public virtual void Relocate(Vector2N position)
+		{
+			_position = position;
+		}
+
+		public virtual void Redirect(Vector2N movement)
+		{
+			_movement = movement;
+		}
+
 		public virtual void Move(Numerus deltaTime)
 		{
-			_position *= deltaTime;
+			_position = _position + _movement * deltaTime;
 		}
 	}
 }
