@@ -26,6 +26,9 @@ namespace Shtoockie.Matematika
         public static readonly Numerus _min = new Numerus(long.MinValue);
         public static Numerus Min => _min;
 
+        public static readonly Numerus _one = (Numerus)1;
+        public static Numerus One => _one;
+
         private readonly long _value;
 
         #region Constructors
