@@ -295,5 +295,15 @@ namespace Shtoockie.Matematika
 
             return new DateTime(0L);
         }
+
+        public Numerus Halve()
+        {
+            return new Numerus(_value >> 1);
+        }
+
+        public Numerus Redouble()
+        {
+            return new Numerus(_value << 1);
+        }
     }
 }
