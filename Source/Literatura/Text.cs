@@ -23,6 +23,11 @@
 
         public static implicit operator Text(string text) => new Text(text);
         public static implicit operator string(Text text) => text._hasValue ? text._value : string.Empty;
+        
+        public override string ToString()
+        {
+            return _hasValue ? _value : string.Empty;
+        }
 
         public override bool Equals(object obj)
         {
