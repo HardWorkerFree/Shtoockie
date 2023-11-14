@@ -29,6 +29,15 @@ namespace Shtoockie.Matematika
         private static readonly Numerus _one = (Numerus)1;
         public static Numerus One => _one;
 
+        private static readonly Numerus _second = TimeSpan.FromTicks(TimeSpan.TicksPerSecond);
+        public static Numerus Second => _second;
+
+        private static readonly Numerus _millisecond = TimeSpan.FromTicks(TimeSpan.TicksPerMillisecond);
+        public static Numerus Millisecond => _millisecond;
+
+        private static readonly Numerus _microsecond = new Numerus(1L);
+        public static Numerus Microsecond => _microsecond;
+
         private readonly long _value;
 
         #region Constructors
