@@ -74,6 +74,11 @@ namespace Shtoockie.Matematika
             return new Vector2N(left._x - right._x, left._y - right._y);
         }
 
+        public static Vector2N operator -(Vector2N left)
+        {
+            return new Vector2N(-left._x, -left._y);
+        }
+
         public static Vector2N operator *(Vector2N left, Vector2N right)
         {
             return new Vector2N(left._x * right._x, left._y * right._y);

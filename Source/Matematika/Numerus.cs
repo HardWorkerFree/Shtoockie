@@ -104,7 +104,7 @@ namespace Shtoockie.Matematika
 
         public override string ToString()
         {
-            return (_value / DecimalPart).ToString(CultureInfo.InvariantCulture) + DecimalSeparator + Abs(_value % DecimalPart).ToString(CultureInfo.InvariantCulture).PadLeft(Decimals, '0');
+            return ((_value < 0L) ? "-" : string.Empty) + Abs(_value / DecimalPart).ToString(CultureInfo.InvariantCulture) + DecimalSeparator + Abs(_value % DecimalPart).ToString(CultureInfo.InvariantCulture).PadLeft(Decimals, '0');
         }
 
         public static Numerus operator +(Numerus left, Numerus right)
