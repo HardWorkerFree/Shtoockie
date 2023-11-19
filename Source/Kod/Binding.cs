@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Shtoockie.Kod
 {
-    public class Binding<TValue> : IBinding<TValue> where TValue : struct
+    public class Binding<TValue> : IBinding<TValue>, IReadonlyBinding<TValue> where TValue : struct
     {
 		private TValue _value;
 		public TValue Value
@@ -34,7 +34,7 @@ namespace Shtoockie.Kod
 			_subscribers.Remove(action);
 		}
 
-		private void Update(TValue value)
+		public void Update(TValue value)
 		{
 			if (!_value.Equals(value))
 			{
@@ -47,5 +47,10 @@ namespace Shtoockie.Kod
 				}
 			}
 		}
+
+		public void SilentUpdate(TValue value)
+		{
+            _value = value;
+        }
 	}
 }
