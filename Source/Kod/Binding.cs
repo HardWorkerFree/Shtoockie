@@ -48,6 +48,17 @@ namespace Shtoockie.Kod
 			}
 		}
 
+		public void ForcedUpdate(TValue value)
+		{
+            TValue oldValue = _value;
+            _value = value;
+
+            foreach (var subscriber in _subscribers)
+            {
+                subscriber(oldValue, _value);
+            }
+        }
+
 		public void SilentUpdate(TValue value)
 		{
             _value = value;

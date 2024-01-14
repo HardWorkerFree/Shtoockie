@@ -12,8 +12,8 @@ namespace Shtoockie.Fizika
 			protected set { _radius = value; }
 		}
 
-		public RoundBody(Numerus mass, Vector2N position, Vector2N movement, Numerus radius)
-			: base(mass, position, movement)
+		public RoundBody(Numerus mass, Vector2N position, Numerus radius)
+			: base(mass, position)
 		{
 			_radius = radius;
         }

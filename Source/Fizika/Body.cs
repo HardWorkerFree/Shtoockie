@@ -1,9 +1,13 @@
-﻿using Shtoockie.Matematika;
+﻿using System;
+
+using Shtoockie.Matematika;
 
 namespace Shtoockie.Fizika
 {
 	public abstract class Body
     {
+		private World _world;
+
 		private Vector2N _position;
 		public Vector2N Position
 		{
@@ -20,8 +24,6 @@ namespace Shtoockie.Fizika
 		private Numerus _speed;
 		public Numerus Speed => _speed;
 
-		public bool IsFixed => _movement == Vector2N.Zero;
-
 		private Numerus _mass;
 		public Numerus Mass
 		{
@@ -29,11 +31,36 @@ namespace Shtoockie.Fizika
 			protected set { _mass = value; }
 		}
 
-		public Body(Numerus mass, Vector2N position, Vector2N movement)
+		public bool IsEthereal => _world == null;
+
+		public bool IsStatic => _movement == Vector2N.Zero;
+
+		public Body(Numerus mass, Vector2N position)
 		{
-			_mass = mass;
+            _mass = mass;
 			_position = position;
-			_movement = movement;
+			_movement = Vector2N.Zero;
+		}
+
+		public void Materialize(World targetWorld)
+		{
+			if (_world != null)
+			{
+				_world.RemoveBody(this);
+			}
+
+			_world = targetWorld ?? throw new ArgumentNullException(nameof(targetWorld));
+			_world.AddBody(this);
+		}
+
+		public void Annihilate()
+		{
+			if (_world != null)
+			{
+				_world.RemoveBody(this);
+			}
+
+			_world = null;
 		}
 
 		public abstract bool CheckIntersection(RoundBody other);
