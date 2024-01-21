@@ -4,7 +4,7 @@ using Shtoockie.Matematika;
 
 namespace Shtoockie.Fizika
 {
-    public class World
+    public abstract class WorldBase
     {
         private readonly HashSet<Body> _bodies;
         public IReadOnlyCollection<Body> Bodies => _bodies;
@@ -15,12 +15,12 @@ namespace Shtoockie.Fizika
         private readonly Numerus _defaultFriction;
         public Numerus DefaultFriction => _defaultFriction;
 
-        public World()
+        public WorldBase()
         {
             _bodies = new HashSet<Body>();
             _gravitation = (Numerus)9_806_650L;
             //eanote F=ma; Fтр=-uN; N=mg; F+Fтр=0; a=-ug; u=0,5;
-            _defaultFriction = -(Numerus)500_000L * _gravitation;
+            _defaultFriction = -Numerus.One.Halve() * _gravitation;
         }
 
         public void AddBody(Body body)
