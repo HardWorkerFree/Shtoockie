@@ -6,7 +6,7 @@ namespace Shtoockie.Fizika
 {
 	public abstract class Body
     {
-		private WorldBase _world;
+		private BaseWorld _world;
 
 		private Vector2N _position;
 		public Vector2N Position
@@ -42,7 +42,7 @@ namespace Shtoockie.Fizika
 			_movement = Vector2N.Zero;
 		}
 
-		public void Materialize(WorldBase targetWorld)
+		public void Materialize(BaseWorld targetWorld)
 		{
 			if (_world != null)
 			{

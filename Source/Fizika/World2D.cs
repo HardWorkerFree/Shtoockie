@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Shtoockie.Fizika
 {
-    public class World2D : WorldBase
+    public class World2D : BaseWorld
     {
     }
 }
