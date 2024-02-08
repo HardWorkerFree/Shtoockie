@@ -1,14 +1,9 @@
-﻿using System.Collections.Generic;
-
-using Shtoockie.Matematika;
+﻿using Shtoockie.Matematika;
 
 namespace Shtoockie.Fizika
 {
     public abstract class BaseWorld
     {
-        private readonly HashSet<Body> _bodies;
-        public IReadOnlyCollection<Body> Bodies => _bodies;
-
         private readonly Numerus _gravitation;
         public Numerus Gravitation => _gravitation;
 
@@ -17,33 +12,15 @@ namespace Shtoockie.Fizika
 
         public BaseWorld()
         {
-            _bodies = new HashSet<Body>();
             _gravitation = (Numerus)9_806_650L;
             //eanote F=ma; Fтр=-uN; N=mg; F+Fтр=0; a=-ug; u=0,5;
-            _defaultFriction = -Numerus.One.Halve() * _gravitation;
+            _defaultFriction = (Numerus)(-010_000L) * _gravitation;
         }
 
-        public void AddBody(Body body)
-        {
-            _bodies.Add(body);
-        }
+        public abstract void Materialize(Body body);
 
-        public void RemoveBody(Body body)
-        {
-            _bodies.Remove(body);
-        }
+        public abstract void Annihilate(Body body);
 
-        public void Observe(Numerus deltaTime)
-        {
-            for (int i = 0; i < _bodies.Count; i++)
-            {
-
-            }
-
-            foreach (Body body in _bodies)
-            {
-                body.Move(deltaTime);
-            }
-        }
+        public abstract void Observe(Numerus deltaTime);
     }
 }

@@ -111,6 +111,11 @@ namespace Shtoockie.Matematika
             return (left._x * right._x) + (left._y * right._y);
         }
 
+        public static Numerus Cross(Vector2N left, Vector2N right)
+        {
+            return (left._x * right._y) - (left._y * right._x);
+        }
+
         public Vector2N Abs()
         {
             return new Vector2N(_x.Abs(), _y.Abs());
@@ -130,6 +135,26 @@ namespace Shtoockie.Matematika
         public Numerus Length()
         {
             return ((_x * _x) + (_y * _y)).Sqrt();
+        }
+
+        public static Numerus Project(Vector2N source, Vector2N target)
+        {
+            if (target == Vector2N.Zero)
+            {
+                return Numerus.Zero;
+            }
+
+            return Dot(source, target) / target.Length();
+        }
+
+        public static Numerus ProjectToNormal(Vector2N source, Vector2N targetNormal)
+        {
+            if (targetNormal == Vector2N.Zero)
+            {
+                return Numerus.Zero;
+            }
+
+            return Dot(source, targetNormal);
         }
     }
 }
