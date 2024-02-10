@@ -4,7 +4,7 @@ namespace Shtoockie.Fizika
 {
     public class RoundBody : Body
     {
-        public override int Kind => World2D.RoundBodyKind;
+        public override int Code => World2D.RoundCode;
 
 		private Numerus _radius;
 		public Numerus Radius

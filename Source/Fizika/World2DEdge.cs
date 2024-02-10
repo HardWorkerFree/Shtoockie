@@ -6,7 +6,7 @@ namespace Shtoockie.Fizika
 {
     public class World2DEdge : Body
     {
-        public override int Kind => World2D.World2DEdgeKind;
+        public override int Code => World2D.EdgeCode;
     
         private readonly Vector2N _normal;
         public Vector2N Normal => _normal;

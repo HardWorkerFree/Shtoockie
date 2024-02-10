@@ -1,16 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 
+using Shtoockie.Kod;
 using Shtoockie.Matematika;
 
 namespace Shtoockie.Fizika
 {
     public class World2D : BaseWorld
     {
-        public const int PointKind = 0;
-        public const int World2DEdgeKind = 1;
-        public const int RoundBodyKind = 2;
-
         record class GridCoords(int X, int Y);
+
+        public const int PointCode = 1;
+        public const int EdgeCode = 2;
+        public const int RoundCode = 4;
+        public const int EdgeOrRound = EdgeCode | RoundCode;
 
         private readonly int _xLength;
         private readonly int _yLength;
@@ -24,7 +28,10 @@ namespace Shtoockie.Fizika
         private readonly Vector2N _boundsStart;
         private readonly Vector2N _boundsEnd;
         private readonly HashSet<Body> _outOfBoundsBodies;
-        private readonly Dictionary<Body, Body> _intersectedBodies;
+        private readonly Dictionary<Body, AscPair<Body>> _intersectedBodies;
+
+        private readonly ConcurrentQueue<Vector2N> _unhandledImpacts;
+        private readonly Dictionary<Body, AscPair<Body>> _impactedBodies;
 
         public World2D(Numerus sectionLength, int gridXLength, int gridYLength)
         {
@@ -36,7 +43,10 @@ namespace Shtoockie.Fizika
             _boundsStart = new Vector2N(_sectionLength);
             _boundsEnd = new Vector2N((Numerus)(_xLength - 1), (Numerus)(_yLength - 1)) * _sectionLength;
             _outOfBoundsBodies = new HashSet<Body>();
-            _intersectedBodies = new Dictionary<Body, Body>();
+            _intersectedBodies = new Dictionary<Body, AscPair<Body>>();
+
+            _unhandledImpacts = new ConcurrentQueue<Vector2N>();
+            _impactedBodies = new Dictionary<Body, AscPair<Body>>();
 
             FillGrid();
         }
@@ -95,7 +105,7 @@ namespace Shtoockie.Fizika
         {
             if (CheckOutOfBounds(body))
             {
-                if (body.Kind != World2DEdgeKind)
+                if (body.Code != EdgeCode)
                 {
                     return;
                 }
@@ -162,50 +172,74 @@ namespace Shtoockie.Fizika
 
         private void Intersect()
         {
-            bool isBodiesIntersected;
             foreach (var pair in _allBodies)
             {
+                Body one = pair.Key;
+                AscPair<Body> impactedPair;
+                bool isOneImpacted = _impactedBodies.TryGetValue(one, out impactedPair);
+
+                //eanote игнорируем тела без движения
                 if (pair.Key.IsStatic)
                 {
-                    continue;
-                }
-
-                if (_intersectedBodies.ContainsKey(pair.Key))
-                {
-                    continue;
-                }
-
-                isBodiesIntersected = false;
-
-                for (int x = pair.Value.X - 1; x <= pair.Value.X + 1; x++)
-                {
-                    for (int y = pair.Value.Y - 1; y <= pair.Value.Y + 1; y++)
+                    //eanote оба тела бездвижны - значит удар закончился
+                    if (isOneImpacted && impactedPair.One.IsStatic && impactedPair.Other.IsStatic)
                     {
-                        foreach (var body in _grid[x, y])
+                        _impactedBodies.Remove(impactedPair.One);
+                        _impactedBodies.Remove(impactedPair.Other);
+                    }
+
+                    continue;
+                }
+
+                GridCoords oneGridCoords = pair.Value;
+                bool isBodiesIntersected = false;
+
+                for (int x = oneGridCoords.X - 1; x <= oneGridCoords.X + 1; x++)
+                {
+                    for (int y = oneGridCoords.Y - 1; y <= oneGridCoords.Y + 1; y++)
+                    {
+                        foreach (var other in _grid[x, y])
                         {
-                            if (body == pair.Key)
+                            if (one == other)
                             {
                                 continue;
                             }
 
-                            if (body.Kind == World2DEdgeKind
-                                && x != pair.Value.X
-                                && y != pair.Value.Y)
+                            //eanote диагональные не смотрим, т.к. ближе будут те, что по краям.
+                            if (other.Code == EdgeCode
+                                && x != oneGridCoords.X
+                                && y != oneGridCoords.Y)
                             {
                                 continue;
                             }
 
-                            if (_intersectedBodies.ContainsKey(body))
-                            {
-                                continue;
-                            }    
+                            AscPair<Body> ascPair = new AscPair<Body>(one, other);
+                            bool isOneImpactedOther = isOneImpacted && (impactedPair.One == ascPair.One) && (impactedPair.Other == ascPair.Other);
 
-                            if (CheckIntersection(pair.Key, body))
+                            if (CheckIntersection(ascPair))
                             {
+                                if (isOneImpactedOther)
+                                {
+                                    continue;
+                                }
+
+                                //eanote рассчитываем не более одного пересечения за такт
+                                if (_intersectedBodies.ContainsKey(other))
+                                {
+                                    continue;
+                                }
+
+                                //eanote взаимное пересечение тел
                                 isBodiesIntersected = true;
-                                _intersectedBodies.Add(body, pair.Key);
+                                _intersectedBodies.Add(one, ascPair);
+                                _intersectedBodies.Add(other, ascPair);
 
                                 break;
+                            }
+                            else if (isOneImpactedOther) //eanote если пересечение закончилось, то считаем удар завершённым
+                            {
+                                _impactedBodies.Remove(one);
+                                _impactedBodies.Remove(other);
                             }
                         }
 
@@ -223,52 +257,41 @@ namespace Shtoockie.Fizika
             }
         }
 
-        private bool CheckIntersection(Body one, Body other)
+        private bool CheckIntersection(AscPair<Body> bodyPair)
         {
-            switch (one.Kind)
+            switch (bodyPair.OrCode)
             {
-                case World2D.World2DEdgeKind:
-                    return false;
-                case World2D.RoundBodyKind:
-                    return CheckIntersection((RoundBody)one, other);
+                case World2D.EdgeCode:
+                    throw new InvalidOperationException();
+                case World2D.RoundCode:
+                    return CheckIntersection((RoundBody)bodyPair.One, (RoundBody)bodyPair.Other);
+                case World2D.EdgeOrRound:
+                    return CheckIntersection((World2DEdge)bodyPair.One, (RoundBody)bodyPair.Other);
                 default:
                     return false;
             }
         }
 
-        private bool CheckIntersection(RoundBody one, Body other)
+        private bool CheckIntersection(World2DEdge one, RoundBody other)
         {
-            switch (other.Kind)
+            if (one.Normal.X > Numerus.Zero)
             {
-                case World2D.World2DEdgeKind:
-                    return CheckIntersection(one, (World2DEdge)other);
-                case World2D.RoundBodyKind:
-                    return CheckIntersection(one, (RoundBody)other);
-                default:
-                    return false;
-            }
-        }
-
-        private bool CheckIntersection(RoundBody one, World2DEdge other)
-        {
-            if (other.Normal.X > Numerus.Zero)
-            {
-                return (one.Position.X - one.Radius) <= other.Edge;
+                return (other.Position.X - other.Radius) <= one.Edge;
             }
 
-            if (other.Normal.X < Numerus.Zero)
+            if (one.Normal.X < Numerus.Zero)
             {
-                return other.Edge <= one.Position.X + one.Radius;
+                return one.Edge <= other.Position.X + other.Radius;
             }
 
-            if (other.Normal.Y > Numerus.Zero)
+            if (one.Normal.Y > Numerus.Zero)
             {
-                return (one.Position.Y - one.Radius) <= other.Edge;
+                return (other.Position.Y - other.Radius) <= one.Edge;
             }
 
-            if (other.Normal.Y < Numerus.Zero)
+            if (one.Normal.Y < Numerus.Zero)
             {
-                return other.Edge <= one.Position.Y + one.Radius;
+                return one.Edge <= other.Position.Y + other.Radius;
             }
 
             return false;
@@ -284,21 +307,55 @@ namespace Shtoockie.Fizika
 
         private void SolveCollisions()
         {
-            Numerus two = Numerus.One.Redouble();
-
             foreach (var pair in _intersectedBodies)
             {
-                if (pair.Key.Kind == World2DEdgeKind)
+                if (_impactedBodies.ContainsKey(pair.Key))
                 {
-                    World2DEdge worldEdge = (World2DEdge)pair.Key;
-                    //eanote r=n*2*|a.n|+a
-                    Numerus doubleProjection = two * Vector2N.ProjectToNormal(pair.Value.Movement, worldEdge.Normal).Abs();
-                    Vector2N reflectedMovement = worldEdge.Normal * doubleProjection + pair.Value.Movement;
-                    pair.Value.Redirect(reflectedMovement);
+                    continue;
                 }
+
+                Vector2N reflectedMovement = Vector2N.Zero;
+                AscPair<Body> intersectedPair = pair.Value;
+
+                switch (intersectedPair.OrCode)
+                {
+                    case World2D.EdgeCode:
+                        throw new InvalidOperationException();
+                    case World2D.RoundCode:
+                        Impact((RoundBody)intersectedPair.One, (RoundBody)intersectedPair.Other);
+                        break;
+                    case World2D.EdgeOrRound:
+                        Impact((World2DEdge)intersectedPair.One, (RoundBody)intersectedPair.Other);
+                        break;
+                    default:
+                        continue;
+                }
+
+                //eanote для защиты от двойного рассчета пересечений
+                _impactedBodies[pair.Value.One] = pair.Value;
+                _impactedBodies[pair.Value.Other] = pair.Value;
             }
 
             _intersectedBodies.Clear();
+        }
+
+        private void Impact(World2DEdge one, RoundBody other)
+        {
+            //eanote r=n*2*|a.n|+a
+            Numerus doubleProjection = Vector2N.ProjectToNormal(other.Movement, one.Normal).Abs().Redouble();
+            Vector2N reflectedMovement = one.Normal * doubleProjection + other.Movement;
+
+            other.Redirect(reflectedMovement);
+
+            _unhandledImpacts.Enqueue(reflectedMovement);
+        }
+
+        private void Impact(RoundBody one, RoundBody other)
+        {
+            _unhandledImpacts.Enqueue(one.Movement + other.Movement);
+
+            one.Redirect(Vector2N.Zero);
+            other.Redirect(Vector2N.Zero);
         }
     }
 }

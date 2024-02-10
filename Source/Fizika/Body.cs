@@ -1,10 +1,11 @@
-﻿using Shtoockie.Matematika;
+﻿using Shtoockie.Kod;
+using Shtoockie.Matematika;
 
 namespace Shtoockie.Fizika
 {
-    public abstract class Body
+    public abstract class Body : ICode
     {
-		public abstract int Kind { get; }
+		public abstract int Code { get; }
 
 		private Vector2N _position;
 		public Vector2N Position
@@ -45,7 +46,16 @@ namespace Shtoockie.Fizika
 
 		public virtual void Redirect(Vector2N movement)
 		{
-			_movement = movement;
+            if (movement == Vector2N.Zero)
+            {
+                _speed = Numerus.Zero;
+                _direction = Vector2N.Zero;
+                _movement = Vector2N.Zero;
+
+                return;
+            }
+
+            _movement = movement;
 			_speed = movement.Length();
 			_direction = movement / _speed;
 		}
