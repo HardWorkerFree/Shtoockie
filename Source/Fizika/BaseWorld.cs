@@ -14,7 +14,7 @@ namespace Shtoockie.Fizika
         {
             _gravitation = (Numerus)9_806_650L;
             //eanote F=ma; Fтр=-uN; N=mg; F+Fтр=0; a=-ug; u=0,5;
-            _defaultFriction = (Numerus)(-100_000L) * _gravitation;
+            _defaultFriction = (Numerus)(-500_000L) * _gravitation;
         }
 
         public abstract void Materialize(Body body);

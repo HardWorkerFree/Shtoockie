@@ -342,11 +342,31 @@ namespace Shtoockie.Fizika
         private void Impact(World2DEdge one, RoundBody other)
         {
             //eanote r=n*2*|a.n|+a
-            Numerus doubleProjection = Vector2N.ProjectToNormal(other.Movement, one.Normal).Abs().Redouble();
-            Vector2N reflectedMovement = one.Normal * doubleProjection + other.Movement;
+            Numerus reflectedXMovement = other.Movement.X;
+            Numerus reflectedYMovement = other.Movement.Y;
 
+            if (one.Normal.X > Numerus.Zero)
+            {
+                reflectedXMovement = reflectedXMovement.Abs();
+            }
+
+            if (one.Normal.X < Numerus.Zero)
+            {
+                reflectedXMovement = -reflectedXMovement.Abs();
+            }
+
+            if (one.Normal.Y > Numerus.Zero)
+            {
+                reflectedYMovement = reflectedYMovement.Abs();
+            }
+
+            if (one.Normal.Y < Numerus.Zero)
+            {
+                reflectedYMovement = -reflectedYMovement.Abs();
+            }
+
+            Vector2N reflectedMovement = new Vector2N(reflectedXMovement, reflectedYMovement);
             other.Redirect(reflectedMovement);
-
             _unhandledImpacts.Enqueue(reflectedMovement);
         }
 
