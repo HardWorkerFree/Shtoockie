@@ -57,7 +57,17 @@ namespace Shtoockie.Fizika
 
             _movement = movement;
 			_speed = movement.Length();
-			_direction = movement / _speed;
+
+            if (_speed == Numerus.Zero)
+            {
+                _speed = Numerus.Zero;
+                _direction = Vector2N.Zero;
+                _movement = Vector2N.Zero;
+
+                return;
+            }
+
+            _direction = movement / _speed;
 		}
 
 		public virtual void AddForce(Numerus deltaTime, Numerus force)

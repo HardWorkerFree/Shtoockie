@@ -224,7 +224,8 @@ namespace Shtoockie.Fizika
                                 }
 
                                 //eanote рассчитываем не более одного пересечения за такт
-                                if (_intersectedBodies.ContainsKey(other))
+                                if (_intersectedBodies.ContainsKey(one)
+                                    || _intersectedBodies.ContainsKey(other))
                                 {
                                     continue;
                                 }
@@ -372,10 +373,47 @@ namespace Shtoockie.Fizika
 
         private void Impact(RoundBody one, RoundBody other)
         {
-            _unhandledImpacts.Enqueue(one.Movement + other.Movement);
+            //eanote
+            //Считаем отностительно скорости центра масс 
+            //Vcn=(m1V1n+m2V2n)(m1+m2)
+            //U1n=-V1n+2Vcn
+            //U2n=-V2n+2Vcn
+            //
+            //тангенциальная скорость не изменяется (Сивухин)
+            //U1t=V1t
+            //U2t=V2t
 
-            one.Redirect(Vector2N.Zero);
-            other.Redirect(Vector2N.Zero);
+            Vector2N Normal = (one.Position - other.Position).Abs().Normalize();
+            Vector2N Tangent = new Vector2N(Normal.Y, -Normal.X);
+
+            Numerus V1n = Vector2N.ProjectToNormal(one.Movement, Normal);
+            Numerus V1t = Vector2N.ProjectToNormal(one.Movement, Tangent);
+            Numerus V2n = Vector2N.ProjectToNormal(other.Movement, Normal);
+            Numerus V2t = Vector2N.ProjectToNormal(other.Movement, Tangent);
+
+            Numerus doubleVcn;
+
+            if (one.Mass == other.Mass)
+            {
+                doubleVcn = V1n + V2n;
+            }
+            else
+            {
+                doubleVcn = ((one.Mass * V1n + other.Mass * V2n) * (one.Mass + other.Mass)).Redouble();
+            }
+
+            Numerus U1n = -V1n + doubleVcn;
+            Numerus U2n = -V2n + doubleVcn;
+
+            Vector2N U1 = new Vector2N(U1n, V1t);
+            Vector2N U2 = new Vector2N(U2n, V2t);
+
+            Vector2N U1xy = U1n * Normal + V1t * Tangent;
+            Vector2N U2xy = U2n * Normal + V2t * Tangent;
+
+            one.Redirect(U1xy);
+            other.Redirect(U2xy);
+            _unhandledImpacts.Enqueue(Tangent * (V1n.Abs() + V2n.Abs()));
         }
     }
 }
