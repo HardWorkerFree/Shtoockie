@@ -4,17 +4,15 @@ namespace Shtoockie.Fizika
 {
     public abstract class BaseWorld
     {
-        private readonly Numerus _gravitation;
-        public Numerus Gravitation => _gravitation;
+        private static readonly Numerus _gravitation = (Numerus)9_806_650L;
+        public static Numerus Gravitation => _gravitation;
 
-        private readonly Numerus _defaultFriction;
-        public Numerus DefaultFriction => _defaultFriction;
+        private static readonly Numerus _frictionMultiplier = (Numerus)(-500_000L);
+        public static Numerus FrictionMultiplier => _frictionMultiplier;
 
         public BaseWorld()
         {
-            _gravitation = (Numerus)9_806_650L;
             //eanote F=ma; Fтр=-uN; N=mg; F+Fтр=0; a=-ug; u=0,5;
-            _defaultFriction = (Numerus)(-500_000L) * _gravitation;
         }
 
         public abstract void Materialize(Body body);

@@ -14,7 +14,7 @@ namespace Shtoockie.Fizika
         private readonly Numerus _edge;
         public Numerus Edge => _edge;
 
-        public World2DEdge(Vector2N position, Vector2N normal, Numerus edge) : base(Numerus.Max, position)
+        public World2DEdge(Vector2N position, Vector2N normal, Numerus edge) : base(Numerus.Max, position, Numerus.Max)
         {
             _normal = normal;
             _edge = edge;

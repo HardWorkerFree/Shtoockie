@@ -24,19 +24,26 @@ namespace Shtoockie.Fizika
 		public Numerus Speed => _speed;
 
 		private Numerus _mass;
-		public Numerus Mass
-		{
-			get { return _mass; }
-			protected set { _mass = value; }
-		}
+		public Numerus Mass => _mass;
 
-		public bool IsStatic => _movement == Vector2N.Zero;
+		private Numerus _invertedMass;
 
-		public Body(Numerus mass, Vector2N position)
+		private Numerus _normalReaction;
+		public Numerus NormalReaction => _normalReaction;
+
+		private Numerus _elasticity;
+		public Numerus Elasticity => _elasticity;
+
+        public bool IsStatic => _movement == Vector2N.Zero;
+
+		public Body(Numerus mass, Vector2N position, Numerus elasticity)
 		{
             _mass = mass;
-			_position = position;
+            _invertedMass = Numerus.One / mass;
+            _position = position;
 			_movement = Vector2N.Zero;
+			_normalReaction = _mass * BaseWorld.Gravitation;
+			_elasticity = elasticity;
 		}
 
 		public virtual void Relocate(Vector2N position)
@@ -58,7 +65,7 @@ namespace Shtoockie.Fizika
             _movement = movement;
 			_speed = movement.Length();
 
-            if (_speed == Numerus.Zero)
+            if (_speed <= (Numerus)1_000L) //eanote точность скорости до остановки, чтобы не было бесконечного движения.
             {
                 _speed = Numerus.Zero;
                 _direction = Vector2N.Zero;
@@ -70,23 +77,14 @@ namespace Shtoockie.Fizika
             _direction = movement / _speed;
 		}
 
-		public virtual void AddForce(Numerus deltaTime, Numerus force)
+		public void AddForce(Vector2N force, Numerus deltaTime)
 		{
-			_speed += force * deltaTime;
-
-			if (_speed <= Numerus.Zero)
-			{
-				_speed = Numerus.Zero;
-				_direction = Vector2N.Zero;
-				_movement = Vector2N.Zero;
-
-				return;
-			}
-
-			_movement = _direction * _speed;
+			//eanote F=ma => F=mdV/dt => dV=Fdt/m
+			Vector2N deltaSpeed = force * deltaTime * _invertedMass;
+			Redirect(_movement + deltaSpeed);
 		}
 
-		public virtual void Move(Numerus deltaTime)
+		public void Move(Numerus deltaTime)
 		{
 			_position = _position + _movement * deltaTime;
 		}

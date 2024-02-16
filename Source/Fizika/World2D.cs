@@ -128,9 +128,188 @@ namespace Shtoockie.Fizika
 
         public override void Observe(Numerus deltaTime)
         {
+            //Intersect();
+            //SolveCollisions();
+            AddElasticForce(deltaTime);
+            AddFrictionForce(deltaTime);
             Move(deltaTime);
-            Intersect();
-            SolveCollisions();
+        }
+
+        private void AddElasticForce(Numerus deltaTime)
+        {
+            foreach (var pair in _allBodies)
+            {
+                Body one = pair.Key;
+
+                //eanote игнорируем стены
+                if (pair.Key.Code == EdgeCode)
+                {
+                    continue;
+                }
+
+                GridCoords oneGridCoords = pair.Value;
+                bool isBodiesIntersected = false;
+
+                for (int x = oneGridCoords.X - 1; x <= oneGridCoords.X + 1; x++)
+                {
+                    for (int y = oneGridCoords.Y - 1; y <= oneGridCoords.Y + 1; y++)
+                    {
+                        foreach (var other in _grid[x, y])
+                        {
+                            if (one == other)
+                            {
+                                continue;
+                            }
+
+                            //eanote диагональные не смотрим, т.к. ближе будут те, что по краям.
+                            if (other.Code == EdgeCode
+                                && x != oneGridCoords.X
+                                && y != oneGridCoords.Y)
+                            {
+                                continue;
+                            }
+
+                            AscPair<Body> bodyPair = new AscPair<Body>(one, other);
+                            ClalculateCollision(bodyPair, deltaTime);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ClalculateCollision(AscPair<Body> bodyPair, Numerus deltaTime)
+        {
+            bool isCollide = false;
+
+            switch (bodyPair.OrCode)
+            {
+                case World2D.EdgeCode:
+                    throw new InvalidOperationException();
+                case World2D.RoundCode:
+                    ClalculateCollision((RoundBody)bodyPair.One, (RoundBody)bodyPair.Other, deltaTime);
+                    return;
+                case World2D.EdgeOrRound:
+                    ClalculateCollision((World2DEdge)bodyPair.One, (RoundBody)bodyPair.Other, deltaTime);
+                    return;
+                default:
+                    return;
+            }
+        }
+
+        private void ClalculateCollision(RoundBody one, RoundBody other, Numerus deltaTime)
+        {
+            Vector2N collisionLine = one.Position - other.Position;
+
+            Numerus distanceSquared = collisionLine.LengthSquared();
+            Numerus minimalDistance = one.Radius + other.Radius;
+
+            if ((distanceSquared - (minimalDistance * minimalDistance)) >= Numerus.Zero)
+            {
+                return;
+            }
+
+            if (distanceSquared == Numerus.Zero) //eanote исключительное условие
+            {
+                return;
+            }
+
+            Numerus distance = distanceSquared.Sqrt();
+            Vector2N normal = collisionLine / distance;
+
+            //eanote dl1=k2*dl/2(k1+k2)
+
+            Numerus squeeze = minimalDistance - distance;
+
+            if (one.Elasticity == other.Elasticity)
+            {
+                squeeze = squeeze.Halve();
+            }
+            else
+            {
+                squeeze = (other.Elasticity / (one.Elasticity + other.Elasticity)) * squeeze;
+            }
+
+            //eanote Fупр=-kx
+            //следует учесть что сила упругости возникает от центра
+            Vector2N elasticForce = one.Elasticity * squeeze * normal;
+            one.AddForce(elasticForce, deltaTime);
+        }
+
+        private void ClalculateCollision(World2DEdge one, RoundBody other, Numerus deltaTime)
+        {
+            Numerus squeeze = Numerus.Zero;
+
+            if (one.Normal.X > Numerus.Zero)
+            {
+                squeeze = one.Edge + other.Radius - other.Position.X;
+
+                if (squeeze <= Numerus.Zero) //eanote позиция дальше чем начинается сжатие
+                {
+                    return;
+                }
+            }
+            else
+            {
+                if (one.Normal.X < Numerus.Zero)
+                {
+                    squeeze = other.Position.X + other.Radius - one.Edge;
+
+                    if (squeeze <= Numerus.Zero) //eanote позиция ближе чем начинается сжатие
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    if (one.Normal.Y > Numerus.Zero)
+                    {
+                        squeeze = one.Edge + other.Radius - other.Position.Y;
+
+                        if (squeeze <= Numerus.Zero) //eanote позиция дальше чем начинается сжатие
+                        {
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        if (one.Normal.Y < Numerus.Zero)
+                        {
+                            squeeze = other.Position.Y + other.Radius - one.Edge;
+
+                            if (squeeze <= Numerus.Zero) //eanote позиция ближе чем начинается сжатие
+                            {
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+                }
+            }
+
+            //eanote Fупр=-kx
+            //следует учесть что сила упругости возникает от стены
+            Vector2N elasticForce = other.Elasticity * squeeze * one.Normal;
+            other.AddForce(elasticForce, deltaTime);
+        }
+
+        private void AddFrictionForce(Numerus deltaTime)
+        {
+            foreach (var pair in _allBodies)
+            {
+                Body body = pair.Key;
+
+                if (body.IsStatic)
+                {
+                    continue;
+                }
+
+                //eanote Fтр=-uN;
+                Vector2N frictionForce = -body.Direction * body.NormalReaction;
+                body.AddForce(frictionForce, deltaTime);
+            }
         }
 
         private void Move(Numerus deltaTime)
@@ -142,7 +321,6 @@ namespace Shtoockie.Fizika
                     continue;
                 }
 
-                pair.Key.AddForce(deltaTime, base.DefaultFriction);
                 pair.Key.Move(deltaTime);
 
                 if (CheckOutOfBounds(pair.Key))
