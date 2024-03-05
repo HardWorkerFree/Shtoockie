@@ -10,6 +10,7 @@ namespace Shtoockie.Fizika
     public class World2D : BaseWorld
     {
         record class GridCoords(int X, int Y);
+        public record class Impact(AscPair<Body> BodyPair, Numerus OneSpeed, Numerus OtherSpeed);
 
         public const int PointCode = 1;
         public const int EdgeCode = 2;
@@ -27,11 +28,13 @@ namespace Shtoockie.Fizika
 
         private readonly Vector2N _boundsStart;
         private readonly Vector2N _boundsEnd;
-        private readonly HashSet<Body> _outOfBoundsBodies;
-        private readonly Dictionary<Body, AscPair<Body>> _intersectedBodies;
+        private readonly List<Body> _outOfBoundsBodies;
+        private readonly ConcurrentBag<Body> _unhandledAnnihilatedBodies;
+        public ConcurrentBag<Body> UnhandledAnnihilatedBodies => _unhandledAnnihilatedBodies;
 
-        private readonly ConcurrentQueue<Vector2N> _unhandledImpacts;
-        private readonly Dictionary<Body, AscPair<Body>> _impactedBodies;
+        private readonly Dictionary<AscPair<Body>, Impact> _impacts;
+        private readonly ConcurrentBag<Impact> _unhandledImpacts;
+        public ConcurrentBag<Impact> UnhandledImpacts => _unhandledImpacts;
 
         public World2D(Numerus sectionLength, int gridXLength, int gridYLength)
         {
@@ -42,11 +45,10 @@ namespace Shtoockie.Fizika
             _sectionLength = sectionLength;
             _boundsStart = new Vector2N(_sectionLength);
             _boundsEnd = new Vector2N((Numerus)(_xLength - 1), (Numerus)(_yLength - 1)) * _sectionLength;
-            _outOfBoundsBodies = new HashSet<Body>();
-            _intersectedBodies = new Dictionary<Body, AscPair<Body>>();
-
-            _unhandledImpacts = new ConcurrentQueue<Vector2N>();
-            _impactedBodies = new Dictionary<Body, AscPair<Body>>();
+            _outOfBoundsBodies = new List<Body>();
+            _unhandledAnnihilatedBodies = new ConcurrentBag<Body>();
+            _impacts = new Dictionary<AscPair<Body>, Impact>();
+            _unhandledImpacts = new ConcurrentBag<Impact>();
 
             FillGrid();
         }
@@ -123,13 +125,12 @@ namespace Shtoockie.Fizika
                 GridCoords coords = _allBodies[body];
                 _grid[coords.X, coords.Y].Remove(body);
                 _allBodies.Remove(body);
+                _unhandledAnnihilatedBodies.Add(body);
             }
         }
 
         public override void Observe(Numerus deltaTime)
         {
-            //Intersect();
-            //SolveCollisions();
             AddElasticForce(deltaTime);
             AddFrictionForce(deltaTime);
             Move(deltaTime);
@@ -148,7 +149,6 @@ namespace Shtoockie.Fizika
                 }
 
                 GridCoords oneGridCoords = pair.Value;
-                bool isBodiesIntersected = false;
 
                 for (int x = oneGridCoords.X - 1; x <= oneGridCoords.X + 1; x++)
                 {
@@ -179,25 +179,35 @@ namespace Shtoockie.Fizika
 
         private void ClalculateCollision(AscPair<Body> bodyPair, Numerus deltaTime)
         {
-            bool isCollide = false;
+            bool hasImpact = _impacts.ContainsKey(bodyPair);
+            bool isCollided = false;
 
             switch (bodyPair.OrCode)
             {
                 case World2D.EdgeCode:
                     throw new InvalidOperationException();
                 case World2D.RoundCode:
-                    ClalculateCollision((RoundBody)bodyPair.One, (RoundBody)bodyPair.Other, deltaTime);
-                    return;
+                    isCollided = CollideRounds(bodyPair, deltaTime);
+                    break;
                 case World2D.EdgeOrRound:
-                    ClalculateCollision((World2DEdge)bodyPair.One, (RoundBody)bodyPair.Other, deltaTime);
-                    return;
+                    isCollided = CollideEdgeWithRound(bodyPair, deltaTime);
+                    break;
                 default:
-                    return;
+                    break;
+            }
+
+            if (hasImpact && !isCollided) //eanote столкновение закончилось - можно обработать
+            {
+                _unhandledImpacts.Add(_impacts[bodyPair]);
+                _impacts.Remove(bodyPair);
             }
         }
 
-        private void ClalculateCollision(RoundBody one, RoundBody other, Numerus deltaTime)
+        private bool CollideRounds(AscPair<Body> bodyPair, Numerus deltaTime)
         {
+            RoundBody one = (RoundBody)bodyPair.One;
+            RoundBody other = (RoundBody)bodyPair.Other;
+
             Vector2N collisionLine = one.Position - other.Position;
 
             Numerus distanceSquared = collisionLine.LengthSquared();
@@ -205,12 +215,12 @@ namespace Shtoockie.Fizika
 
             if ((distanceSquared - (minimalDistance * minimalDistance)) >= Numerus.Zero)
             {
-                return;
+                return false;
             }
 
             if (distanceSquared == Numerus.Zero) //eanote исключительное условие
             {
-                return;
+                return false;
             }
 
             Numerus distance = distanceSquared.Sqrt();
@@ -229,14 +239,26 @@ namespace Shtoockie.Fizika
                 squeeze = (other.Elasticity / (one.Elasticity + other.Elasticity)) * squeeze;
             }
 
+            if (!_impacts.ContainsKey(bodyPair))
+            {
+                Numerus oneSpeed = Vector2N.ProjectToNormal(one.Movement, -normal);
+                Numerus otherSpeed = Vector2N.ProjectToNormal(other.Movement, normal);
+                _impacts.Add(bodyPair, new Impact(bodyPair, oneSpeed, otherSpeed));
+            }
+
             //eanote Fупр=-kx
             //следует учесть что сила упругости возникает от центра
             Vector2N elasticForce = one.Elasticity * squeeze * normal;
             one.AddForce(elasticForce, deltaTime);
+
+            return true;
         }
 
-        private void ClalculateCollision(World2DEdge one, RoundBody other, Numerus deltaTime)
+        private bool CollideEdgeWithRound(AscPair<Body> bodyPair, Numerus deltaTime)
         {
+            World2DEdge one = (World2DEdge)bodyPair.One;
+            RoundBody other = (RoundBody)bodyPair.Other;
+
             Numerus squeeze = Numerus.Zero;
 
             if (one.Normal.X > Numerus.Zero)
@@ -245,7 +267,7 @@ namespace Shtoockie.Fizika
 
                 if (squeeze <= Numerus.Zero) //eanote позиция дальше чем начинается сжатие
                 {
-                    return;
+                    return false;
                 }
             }
             else
@@ -256,7 +278,7 @@ namespace Shtoockie.Fizika
 
                     if (squeeze <= Numerus.Zero) //eanote позиция ближе чем начинается сжатие
                     {
-                        return;
+                        return false;
                     }
                 }
                 else
@@ -267,7 +289,7 @@ namespace Shtoockie.Fizika
 
                         if (squeeze <= Numerus.Zero) //eanote позиция дальше чем начинается сжатие
                         {
-                            return;
+                            return false;
                         }
                     }
                     else
@@ -278,21 +300,30 @@ namespace Shtoockie.Fizika
 
                             if (squeeze <= Numerus.Zero) //eanote позиция ближе чем начинается сжатие
                             {
-                                return;
+                                return false;
                             }
                         }
                         else
                         {
-                            return;
+                            return false;
                         }
                     }
                 }
+            }
+
+            if (!_impacts.ContainsKey(bodyPair))
+            {
+                Numerus oneSpeed = Numerus.Zero;
+                Numerus otherSpeed = Vector2N.ProjectToNormal(other.Movement, one.Normal);
+                _impacts.Add(bodyPair, new Impact(bodyPair, oneSpeed, otherSpeed));
             }
 
             //eanote Fупр=-kx
             //следует учесть что сила упругости возникает от стены
             Vector2N elasticForce = other.Elasticity * squeeze * one.Normal;
             other.AddForce(elasticForce, deltaTime);
+
+            return true;
         }
 
         private void AddFrictionForce(Numerus deltaTime)
@@ -346,252 +377,6 @@ namespace Shtoockie.Fizika
             }
 
             _outOfBoundsBodies.Clear();
-        }
-
-        private void Intersect()
-        {
-            foreach (var pair in _allBodies)
-            {
-                Body one = pair.Key;
-                AscPair<Body> impactedPair;
-                bool isOneImpacted = _impactedBodies.TryGetValue(one, out impactedPair);
-
-                //eanote игнорируем тела без движения
-                if (pair.Key.IsStatic)
-                {
-                    //eanote оба тела бездвижны - значит удар закончился
-                    if (isOneImpacted && impactedPair.One.IsStatic && impactedPair.Other.IsStatic)
-                    {
-                        _impactedBodies.Remove(impactedPair.One);
-                        _impactedBodies.Remove(impactedPair.Other);
-                    }
-
-                    continue;
-                }
-
-                GridCoords oneGridCoords = pair.Value;
-                bool isBodiesIntersected = false;
-
-                for (int x = oneGridCoords.X - 1; x <= oneGridCoords.X + 1; x++)
-                {
-                    for (int y = oneGridCoords.Y - 1; y <= oneGridCoords.Y + 1; y++)
-                    {
-                        foreach (var other in _grid[x, y])
-                        {
-                            if (one == other)
-                            {
-                                continue;
-                            }
-
-                            //eanote диагональные не смотрим, т.к. ближе будут те, что по краям.
-                            if (other.Code == EdgeCode
-                                && x != oneGridCoords.X
-                                && y != oneGridCoords.Y)
-                            {
-                                continue;
-                            }
-
-                            AscPair<Body> ascPair = new AscPair<Body>(one, other);
-                            bool isOneImpactedOther = isOneImpacted && (impactedPair.One == ascPair.One) && (impactedPair.Other == ascPair.Other);
-
-                            if (CheckIntersection(ascPair))
-                            {
-                                if (isOneImpactedOther)
-                                {
-                                    continue;
-                                }
-
-                                //eanote рассчитываем не более одного пересечения за такт
-                                if (_intersectedBodies.ContainsKey(one)
-                                    || _intersectedBodies.ContainsKey(other))
-                                {
-                                    continue;
-                                }
-
-                                //eanote взаимное пересечение тел
-                                isBodiesIntersected = true;
-                                _intersectedBodies.Add(one, ascPair);
-                                _intersectedBodies.Add(other, ascPair);
-
-                                break;
-                            }
-                            else if (isOneImpactedOther) //eanote если пересечение закончилось, то считаем удар завершённым
-                            {
-                                _impactedBodies.Remove(one);
-                                _impactedBodies.Remove(other);
-                            }
-                        }
-
-                        if (isBodiesIntersected)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (isBodiesIntersected)
-                    {
-                        break;
-                    }
-                }
-            }
-        }
-
-        private bool CheckIntersection(AscPair<Body> bodyPair)
-        {
-            switch (bodyPair.OrCode)
-            {
-                case World2D.EdgeCode:
-                    throw new InvalidOperationException();
-                case World2D.RoundCode:
-                    return CheckIntersection((RoundBody)bodyPair.One, (RoundBody)bodyPair.Other);
-                case World2D.EdgeOrRound:
-                    return CheckIntersection((World2DEdge)bodyPair.One, (RoundBody)bodyPair.Other);
-                default:
-                    return false;
-            }
-        }
-
-        private bool CheckIntersection(World2DEdge one, RoundBody other)
-        {
-            if (one.Normal.X > Numerus.Zero)
-            {
-                return (other.Position.X - other.Radius) <= one.Edge;
-            }
-
-            if (one.Normal.X < Numerus.Zero)
-            {
-                return one.Edge <= other.Position.X + other.Radius;
-            }
-
-            if (one.Normal.Y > Numerus.Zero)
-            {
-                return (other.Position.Y - other.Radius) <= one.Edge;
-            }
-
-            if (one.Normal.Y < Numerus.Zero)
-            {
-                return one.Edge <= other.Position.Y + other.Radius;
-            }
-
-            return false;
-        }
-
-        private bool CheckIntersection(RoundBody one, RoundBody other)
-        {
-            Numerus distanceSquared = (one.Position - other.Position).LengthSquared();
-            Numerus minimalDistance = one.Radius + other.Radius;
-
-            return (distanceSquared - (minimalDistance * minimalDistance)) < Numerus.Zero;
-        }
-
-        private void SolveCollisions()
-        {
-            foreach (var pair in _intersectedBodies)
-            {
-                if (_impactedBodies.ContainsKey(pair.Key))
-                {
-                    continue;
-                }
-
-                Vector2N reflectedMovement = Vector2N.Zero;
-                AscPair<Body> intersectedPair = pair.Value;
-
-                switch (intersectedPair.OrCode)
-                {
-                    case World2D.EdgeCode:
-                        throw new InvalidOperationException();
-                    case World2D.RoundCode:
-                        Impact((RoundBody)intersectedPair.One, (RoundBody)intersectedPair.Other);
-                        break;
-                    case World2D.EdgeOrRound:
-                        Impact((World2DEdge)intersectedPair.One, (RoundBody)intersectedPair.Other);
-                        break;
-                    default:
-                        continue;
-                }
-
-                //eanote для защиты от двойного рассчета пересечений
-                _impactedBodies[pair.Value.One] = pair.Value;
-                _impactedBodies[pair.Value.Other] = pair.Value;
-            }
-
-            _intersectedBodies.Clear();
-        }
-
-        private void Impact(World2DEdge one, RoundBody other)
-        {
-            //eanote r=n*2*|a.n|+a
-            Numerus reflectedXMovement = other.Movement.X;
-            Numerus reflectedYMovement = other.Movement.Y;
-
-            if (one.Normal.X > Numerus.Zero)
-            {
-                reflectedXMovement = reflectedXMovement.Abs();
-            }
-
-            if (one.Normal.X < Numerus.Zero)
-            {
-                reflectedXMovement = -reflectedXMovement.Abs();
-            }
-
-            if (one.Normal.Y > Numerus.Zero)
-            {
-                reflectedYMovement = reflectedYMovement.Abs();
-            }
-
-            if (one.Normal.Y < Numerus.Zero)
-            {
-                reflectedYMovement = -reflectedYMovement.Abs();
-            }
-
-            Vector2N reflectedMovement = new Vector2N(reflectedXMovement, reflectedYMovement);
-            other.Redirect(reflectedMovement);
-            _unhandledImpacts.Enqueue(reflectedMovement);
-        }
-
-        private void Impact(RoundBody one, RoundBody other)
-        {
-            //eanote
-            //Считаем отностительно скорости центра масс 
-            //Vcn=(m1V1n+m2V2n)(m1+m2)
-            //U1n=-V1n+2Vcn
-            //U2n=-V2n+2Vcn
-            //
-            //тангенциальная скорость не изменяется (Сивухин)
-            //U1t=V1t
-            //U2t=V2t
-
-            Vector2N Normal = (one.Position - other.Position).Abs().Normalize();
-            Vector2N Tangent = new Vector2N(Normal.Y, -Normal.X);
-
-            Numerus V1n = Vector2N.ProjectToNormal(one.Movement, Normal);
-            Numerus V1t = Vector2N.ProjectToNormal(one.Movement, Tangent);
-            Numerus V2n = Vector2N.ProjectToNormal(other.Movement, Normal);
-            Numerus V2t = Vector2N.ProjectToNormal(other.Movement, Tangent);
-
-            Numerus doubleVcn;
-
-            if (one.Mass == other.Mass)
-            {
-                doubleVcn = V1n + V2n;
-            }
-            else
-            {
-                doubleVcn = ((one.Mass * V1n + other.Mass * V2n) * (one.Mass + other.Mass)).Redouble();
-            }
-
-            Numerus U1n = -V1n + doubleVcn;
-            Numerus U2n = -V2n + doubleVcn;
-
-            Vector2N U1 = new Vector2N(U1n, V1t);
-            Vector2N U2 = new Vector2N(U2n, V2t);
-
-            Vector2N U1xy = U1n * Normal + V1t * Tangent;
-            Vector2N U2xy = U2n * Normal + V2t * Tangent;
-
-            one.Redirect(U1xy);
-            other.Redirect(U2xy);
-            _unhandledImpacts.Enqueue(Tangent * (V1n.Abs() + V2n.Abs()));
         }
     }
 }

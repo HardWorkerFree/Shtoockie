@@ -65,7 +65,7 @@ namespace Shtoockie.Fizika
             _movement = movement;
 			_speed = movement.Length();
 
-            if (_speed <= (Numerus)1_000L) //eanote точность скорости до остановки, чтобы не было бесконечного движения.
+            if (_speed <= (Numerus)10_000L) //eanote точность скорости до остановки, чтобы не было бесконечного движения.
             {
                 _speed = Numerus.Zero;
                 _direction = Vector2N.Zero;

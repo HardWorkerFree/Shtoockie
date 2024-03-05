@@ -1,6 +1,6 @@
 ﻿namespace Shtoockie.Kod
 {
-    public class AscPair<T> where T : ICode
+    public readonly struct AscPair<T> where T : ICode
     {
         private readonly T _one;
         public T One => _one;
@@ -25,6 +25,21 @@
             }
 
             _orCode = _one.Code | _other.Code;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is AscPair<T> other)
+            {
+                return (this._one.Equals(other._one)) && (this._other.Equals(other._other));
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return _one.GetHashCode() * -1521134295 + _other.GetHashCode();
         }
     }
 }
