@@ -7,7 +7,7 @@ namespace Shtoockie.Fizika
         private static readonly Numerus _gravitation = (Numerus)9_806_650L;
         public static Numerus Gravitation => _gravitation;
 
-        private static readonly Numerus _frictionMultiplier = (Numerus)(-500_000L);
+        private static readonly Numerus _frictionMultiplier = (Numerus)(900_000L);
         public static Numerus FrictionMultiplier => _frictionMultiplier;
 
         public BaseWorld()

@@ -10,7 +10,7 @@ namespace Shtoockie.Fizika
     public class World2D : BaseWorld
     {
         record class GridCoords(int X, int Y);
-        public record class Impact(AscPair<Body> BodyPair, Numerus OneSpeed, Numerus OtherSpeed);
+        public record class Impact(AscPair<Body> BodyPair, Numerus OneSpeed, Numerus OtherSpeed, Vector2N CollisionLine);
 
         public const int PointCode = 1;
         public const int EdgeCode = 2;
@@ -243,7 +243,7 @@ namespace Shtoockie.Fizika
             {
                 Numerus oneSpeed = Vector2N.ProjectToNormal(one.Movement, -normal);
                 Numerus otherSpeed = Vector2N.ProjectToNormal(other.Movement, normal);
-                _impacts.Add(bodyPair, new Impact(bodyPair, oneSpeed, otherSpeed));
+                _impacts.Add(bodyPair, new Impact(bodyPair, oneSpeed, otherSpeed, collisionLine));
             }
 
             //eanote Fупр=-kx
@@ -315,7 +315,7 @@ namespace Shtoockie.Fizika
             {
                 Numerus oneSpeed = Numerus.Zero;
                 Numerus otherSpeed = Vector2N.ProjectToNormal(other.Movement, one.Normal);
-                _impacts.Add(bodyPair, new Impact(bodyPair, oneSpeed, otherSpeed));
+                _impacts.Add(bodyPair, new Impact(bodyPair, oneSpeed, otherSpeed, one.Normal));
             }
 
             //eanote Fупр=-kx
@@ -337,9 +337,7 @@ namespace Shtoockie.Fizika
                     continue;
                 }
 
-                //eanote Fтр=-uN;
-                Vector2N frictionForce = -body.Direction * body.NormalReaction;
-                body.AddForce(frictionForce, deltaTime);
+                body.AddFrictionForce(FrictionMultiplier, deltaTime);
             }
         }
 

@@ -46,12 +46,12 @@ namespace Shtoockie.Fizika
 			_elasticity = elasticity;
 		}
 
-		public virtual void Relocate(Vector2N position)
+		public void Relocate(Vector2N position)
 		{
 			_position = position;
 		}
 
-		public virtual void Redirect(Vector2N movement)
+		public void Redirect(Vector2N movement)
 		{
             if (movement == Vector2N.Zero)
             {
@@ -65,7 +65,7 @@ namespace Shtoockie.Fizika
             _movement = movement;
 			_speed = movement.Length();
 
-            if (_speed <= (Numerus)10_000L) //eanote точность скорости до остановки, чтобы не было бесконечного движения.
+            if (_speed <= (Numerus)1_000L) //eanote точность скорости до остановки, чтобы не было бесконечного движения.
             {
                 _speed = Numerus.Zero;
                 _direction = Vector2N.Zero;
@@ -84,9 +84,30 @@ namespace Shtoockie.Fizika
 			Redirect(_movement + deltaSpeed);
 		}
 
-		public void Move(Numerus deltaTime)
+		public void AddFrictionForce(Numerus frictionMultiplier, Numerus deltaTime)
+		{
+            //eanote Fтр=-uN;
+            Numerus frictionForce = -frictionMultiplier * _normalReaction;
+			Vector2N deltaSpeed = _direction * frictionForce * deltaTime * _invertedMass;
+
+			if (_movement.LengthSquared() < deltaSpeed.LengthSquared())
+			{
+				Stop();
+
+				return;
+			}
+
+			Redirect(_movement + deltaSpeed);
+        }
+
+        public void Move(Numerus deltaTime)
 		{
 			_position = _position + _movement * deltaTime;
 		}
+
+		public void Stop()
+		{
+			Redirect(Vector2N.Zero);
+        }
     }
 }
