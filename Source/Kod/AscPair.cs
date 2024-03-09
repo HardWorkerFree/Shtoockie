@@ -1,6 +1,6 @@
 ﻿namespace Shtoockie.Kod
 {
-    public readonly struct AscPair<T> where T : ICode
+    public class AscPair<T> where T : ICode
     {
         private readonly T _one;
         public T One => _one;
@@ -17,6 +17,19 @@
             {
                 _one = other;
                 _other = one;
+            }
+            else if (one.Code == other.Code)
+            {
+                if (one.GetHashCode() > other.GetHashCode())
+                {
+                    _one = other;
+                    _other = one;
+                }
+                else
+                {
+                    _one = one;
+                    _other = other;
+                }
             }
             else
             {

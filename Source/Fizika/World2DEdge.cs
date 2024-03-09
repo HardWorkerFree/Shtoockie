@@ -4,7 +4,7 @@ using Shtoockie.Matematika;
 
 namespace Shtoockie.Fizika
 {
-    public class World2DEdge : Body
+    public class World2DEdge : Body2D
     {
         public override int Code => World2D.EdgeCode;
     

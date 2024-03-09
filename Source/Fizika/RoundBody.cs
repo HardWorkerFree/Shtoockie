@@ -2,7 +2,7 @@
 
 namespace Shtoockie.Fizika
 {
-    public class RoundBody : Body
+    public class RoundBody : Body2D
     {
         public override int Code => World2D.RoundCode;
 

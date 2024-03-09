@@ -3,7 +3,7 @@ using Shtoockie.Matematika;
 
 namespace Shtoockie.Fizika
 {
-    public abstract class Body : ICode
+    public abstract class Body2D : ICode
     {
 		public abstract int Code { get; }
 
@@ -36,13 +36,13 @@ namespace Shtoockie.Fizika
 
         public bool IsStatic => _movement == Vector2N.Zero;
 
-		public Body(Numerus mass, Vector2N position, Numerus elasticity)
+		public Body2D(Numerus mass, Vector2N position, Numerus elasticity)
 		{
             _mass = mass;
             _invertedMass = Numerus.One / mass;
             _position = position;
 			_movement = Vector2N.Zero;
-			_normalReaction = _mass * BaseWorld.Gravitation;
+			_normalReaction = _mass * World2D.Gravitation;
 			_elasticity = elasticity;
 		}
 
