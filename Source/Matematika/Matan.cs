@@ -35,8 +35,6 @@ namespace Shtoockie.Matematika
         private static void FillTrigonometryCache()
         {
             Numerus clarificator = (Numerus)100_000_000;
-            Numerus firstInvertedClarificator = Numerus.One / (Numerus)10_000;
-            Numerus secondInvertedClarificator = Numerus.One / (Numerus)10_000;
             Numerus[] factorials = new Numerus[7];
 
             Numerus factorial = Numerus.One;
@@ -49,39 +47,23 @@ namespace Shtoockie.Matematika
 
             for (long i = 1; i < _cosCache.Length; i++)
             {
-                if (i == 1_000)
-                {
-                    clarificator = (Numerus)10_000_000;
-                    firstInvertedClarificator = Numerus.One / (Numerus)10_000;
-                    secondInvertedClarificator = Numerus.One / (Numerus)1_000;
-                }
-                else if (i == 10_000)
-                {
-                    clarificator = (Numerus)1_000_000;
-                    firstInvertedClarificator = Numerus.One / (Numerus)1_000;
-                    secondInvertedClarificator = Numerus.One / (Numerus)1_000;
-                }
-                else if (i == 100_000)
-                {
-                    clarificator = (Numerus)100_000;
-                    firstInvertedClarificator = Numerus.One / (Numerus)1_000;
-                    secondInvertedClarificator = Numerus.One / (Numerus)1_00;
-                }
-
                 Numerus alpha = (Numerus)i;
 
                 //eanote accuracy fix
                 Numerus cosA = clarificator;
-
                 Numerus multiplier = clarificator;
-                Numerus sign;
 
                 for (int n = 1; n < factorials.Length; n++)
                 {
                     multiplier *= alpha;
                     multiplier *= alpha;
                     multiplier /= (Numerus)(2 * n * (2 * n - 1));
-                    
+
+                    if (multiplier == Numerus.Zero)
+                    {
+                        break;
+                    }
+
                     if ((n % 2 == 0))
                     {
                         cosA += multiplier;
@@ -93,7 +75,7 @@ namespace Shtoockie.Matematika
                 }
 
                 //eanote accuracy rollback
-                cosA = cosA * firstInvertedClarificator * secondInvertedClarificator;
+                cosA /= clarificator;
                 _cosCache[i] = cosA;
                 _arccosCache[(long)cosA] = (Numerus)i;
             }

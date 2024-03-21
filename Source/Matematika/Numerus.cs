@@ -12,6 +12,11 @@ namespace Shtoockie.Matematika
         private const double DecimalPartD = 1_000_000D;
         private const decimal DecimalPartM = 1_000_000M;
         private const long TicksPerMicrosecond = TimeSpan.TicksPerSecond / DecimalPart;
+        private const long PositiveMultiplicationOverflowDetector = (long)int.MaxValue;
+        private const long NegativeMultiplicationOverflowDetector = (long)int.MinValue;
+        private const long PositiveDivisionOverflowDetector = 1_000_000_000_000L;
+        private const long NegativeDivisionOverflowDetector = -1_000_000_000_000L;
+
         private const int Decimals = 6;
 
         private static string DecimalSeparator = ",";
@@ -119,11 +124,35 @@ namespace Shtoockie.Matematika
 
         public static Numerus operator *(Numerus left, Numerus right)
         {
-            return new Numerus((left._value * right._value) / DecimalPart);
+            if ((left._value > NegativeMultiplicationOverflowDetector)
+                && (left._value < PositiveMultiplicationOverflowDetector)
+                && (right._value > NegativeMultiplicationOverflowDetector)
+                && (right._value < PositiveMultiplicationOverflowDetector))
+            {
+                return new Numerus((left._value * right._value) / DecimalPart);
+            }
+
+            long leftInteger = left._value / DecimalPart;
+            long leftFraction = left._value % DecimalPart;
+            long rightInteger = right._value / DecimalPart;
+            long rightFraction = right._value % DecimalPart;
+
+            return new Numerus(((leftInteger * rightInteger) * DecimalPart) + (leftInteger * rightFraction) + (leftFraction * rightInteger) + ((leftFraction * rightFraction)) / DecimalPart);
         }
 
         public static Numerus operator /(Numerus left, Numerus right)
         {
+            if ((left._value < NegativeDivisionOverflowDetector) || (left._value > PositiveDivisionOverflowDetector))
+            {
+                if ((right._value < NegativeDivisionOverflowDetector) || (right._value > PositiveDivisionOverflowDetector))
+                {
+                    return new Numerus(left._value / (right._value / DecimalPart));
+                }
+
+                // если divider._value < DecimalPart то будет переполнение
+                return new Numerus(((left._value / right._value) * DecimalPart) + (((left._value % right._value) * DecimalPart) / right._value));
+            }
+
             return new Numerus((left._value * DecimalPart) / right._value);
         }
 
@@ -213,7 +242,17 @@ namespace Shtoockie.Matematika
         {
             if (this._value <= 0L)
             {
+                if (this._value < 0L)
+                {
+                    throw new InvalidOperationException($"Negative Numerus.");
+                }
+
                 return Numerus.Zero;
+            }
+
+            if (this._value == DecimalPart)
+            {
+                return Numerus.One;
             }
 
             long square = this._value * DecimalPart;
