@@ -20,7 +20,7 @@ namespace Shtoockie.Kod
         private bool _isChanged;
         public bool IsChanged => _isChanged;
 
-        private PropertyObserver(Func<TObservable> observableValueGetter)
+        public PropertyObserver(Func<TObservable> observableValueGetter)
         {
             _observableValueGetter = observableValueGetter ?? DefaultGet;
 

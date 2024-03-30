@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Shtoockie.Kod
 {
@@ -22,6 +19,13 @@ namespace Shtoockie.Kod
         {
             IPropertyObserver observer = new PropertyObserver<TObservable>(source, sourcePropertyName);
             _observers.Add(observer);
+
+            return this;
+        }
+
+        public MultiTrigger Observe(IPropertyObserver observer)
+        {
+            _observers.Add(observer ?? throw new ArgumentNullException());
 
             return this;
         }
