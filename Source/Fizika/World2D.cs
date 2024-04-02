@@ -12,16 +12,16 @@ namespace Shtoockie.Fizika
         record class GridCoords(int X, int Y);
         public record class Impact(AscPair<Body2D> BodyPair, Numerus OneSpeed, Numerus OtherSpeed, Vector2N CollisionLine);
 
+        public const int PointCode = 1;
+        public const int EdgeCode = 2;
+        public const int RoundCode = 4;
+        public const int EdgeOrRound = EdgeCode | RoundCode;
+
         private static readonly Numerus _gravitation = (Numerus)9_806_650L;
         public static Numerus Gravitation => _gravitation;
 
         private static readonly Numerus _frictionMultiplier = (Numerus)(900_000L);
         public static Numerus FrictionMultiplier => _frictionMultiplier;
-
-        public const int PointCode = 1;
-        public const int EdgeCode = 2;
-        public const int RoundCode = 4;
-        public const int EdgeOrRound = EdgeCode | RoundCode;
 
         private readonly int _xLength;
         private readonly int _yLength;
