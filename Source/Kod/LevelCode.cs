@@ -59,5 +59,23 @@ namespace Shtoockie.Kod
 
             return lenghtComparison;
         }
+
+        public bool StartsWith(LevelCode other)
+        {
+            if (this._levelPositions.Length < other._levelPositions.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < other._levelPositions.Length; i++)
+            {
+                if (this._levelPositions[i] != other._levelPositions[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
