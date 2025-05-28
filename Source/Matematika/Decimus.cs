@@ -2,7 +2,7 @@
 
 namespace Shtoockie.Matematika
 {
-    public readonly struct Decemus
+    public readonly struct Decimus
     {
         //[1][___31___][___32___]
         private const int BitLength = 64;
@@ -38,8 +38,8 @@ namespace Shtoockie.Matematika
         private const long Power18 = 1_000_000_000_000_000_000L;
         private const long Limit = long.MaxValue;
 
-        public static readonly Decemus Zero = new Decemus(0L, 0L);
-        public static readonly Decemus One = new Decemus(1L, 0L);
+        public static readonly Decimus Zero = new Decimus(0L, 0L);
+        public static readonly Decimus One = new Decimus(1L, 0L);
 
         private readonly long _number;
 
@@ -48,7 +48,7 @@ namespace Shtoockie.Matematika
         /// </summary>
         /// <param name="number">number without delimiter</param>
         /// <param name="exponent">-many..many</param>
-        public Decemus(long number, long exponent)
+        public Decimus(long number, long exponent)
         {
             _number = 0L;
 
@@ -228,7 +228,7 @@ namespace Shtoockie.Matematika
             //}
         }
 
-        public Decemus Add(Decemus other)
+        public Decimus Add(Decimus other)
         {
             long thisNumber = this._number;
             long otherNumber = other._number;
@@ -259,23 +259,23 @@ namespace Shtoockie.Matematika
             switch (exponentDelta)
             {
                 case 0:
-                    return new Decemus(thisNumber + otherNumber, thisExponent);
+                    return new Decimus(thisNumber + otherNumber, thisExponent);
                 case 1:
-                    return isNegativeExponentDelta ? new Decemus(thisNumber + otherNumber * Power1, thisExponent) : new Decemus(thisNumber * Power1 + otherNumber, otherExponent);
+                    return isNegativeExponentDelta ? new Decimus(thisNumber + otherNumber * Power1, thisExponent) : new Decimus(thisNumber * Power1 + otherNumber, otherExponent);
                 case 2:
-                    return isNegativeExponentDelta ? new Decemus(thisNumber + otherNumber * Power2, thisExponent) : new Decemus(thisNumber * Power2 + otherNumber, otherExponent);
+                    return isNegativeExponentDelta ? new Decimus(thisNumber + otherNumber * Power2, thisExponent) : new Decimus(thisNumber * Power2 + otherNumber, otherExponent);
                 case 3:
-                    return isNegativeExponentDelta ? new Decemus(thisNumber + otherNumber * Power3, thisExponent) : new Decemus(thisNumber * Power3 + otherNumber, otherExponent);
+                    return isNegativeExponentDelta ? new Decimus(thisNumber + otherNumber * Power3, thisExponent) : new Decimus(thisNumber * Power3 + otherNumber, otherExponent);
                 case 4:
-                    return isNegativeExponentDelta ? new Decemus(thisNumber + otherNumber * Power4, thisExponent) : new Decemus(thisNumber * Power4 + otherNumber, otherExponent);
+                    return isNegativeExponentDelta ? new Decimus(thisNumber + otherNumber * Power4, thisExponent) : new Decimus(thisNumber * Power4 + otherNumber, otherExponent);
                 case 5:
-                    return isNegativeExponentDelta ? new Decemus(thisNumber + otherNumber * Power5, thisExponent) : new Decemus(thisNumber * Power5 + otherNumber, otherExponent);
+                    return isNegativeExponentDelta ? new Decimus(thisNumber + otherNumber * Power5, thisExponent) : new Decimus(thisNumber * Power5 + otherNumber, otherExponent);
                 case 6:
-                    return isNegativeExponentDelta ? new Decemus(thisNumber + otherNumber * Power6, thisExponent) : new Decemus(thisNumber * Power6 + otherNumber, otherExponent);
+                    return isNegativeExponentDelta ? new Decimus(thisNumber + otherNumber * Power6, thisExponent) : new Decimus(thisNumber * Power6 + otherNumber, otherExponent);
                 case 7:
-                    return isNegativeExponentDelta ? new Decemus(thisNumber + otherNumber * Power7, thisExponent) : new Decemus(thisNumber * Power7 + otherNumber, otherExponent);
+                    return isNegativeExponentDelta ? new Decimus(thisNumber + otherNumber * Power7, thisExponent) : new Decimus(thisNumber * Power7 + otherNumber, otherExponent);
                 case 8:
-                    return isNegativeExponentDelta ? new Decemus(thisNumber + otherNumber * Power8, thisExponent) : new Decemus(thisNumber * Power8 + otherNumber, otherExponent);
+                    return isNegativeExponentDelta ? new Decimus(thisNumber + otherNumber * Power8, thisExponent) : new Decimus(thisNumber * Power8 + otherNumber, otherExponent);
                 default:
                     if (isNegativeExponentDelta)
                     {
@@ -288,14 +288,14 @@ namespace Shtoockie.Matematika
             }
         }
 
-        public Decemus Multiply(Decemus other)
+        public Decimus Multiply(Decimus other)
         {
             long thisNumber = this._number;
             long otherNumber = other._number;
 
             if (thisNumber == 0L || otherNumber == 0L)
             {
-                return Decemus.Zero;
+                return Decimus.Zero;
             }
 
             long thisExponent = (thisNumber << ExponentSignDuplicatorOffset) >> ExponentGetOffset;
@@ -304,7 +304,7 @@ namespace Shtoockie.Matematika
             thisNumber = (thisNumber < 0) ? -(thisNumber & NumberBits) : (thisNumber & NumberBits);
             otherNumber = (otherNumber < 0) ? -(otherNumber & NumberBits) : (otherNumber & NumberBits);
 
-            return new Decemus(thisNumber * otherNumber, thisExponent + otherExponent);
+            return new Decimus(thisNumber * otherNumber, thisExponent + otherExponent);
         }
     }
 }

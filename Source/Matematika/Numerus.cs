@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Numerics;
 
 namespace Shtoockie.Matematika
 {
@@ -294,6 +295,71 @@ namespace Shtoockie.Matematika
 
             root = square >> powerOfTwo;
 
+            long previous = square;
+            long rootDivision = 1L;
+
+            while (true)
+            {
+                rootDivision = square / root;
+                root = rootDivision + root;
+                root = root >> 1;
+
+                if (previous == root)
+                {
+                    return new Numerus(root);
+                }
+                else if (previous < root)
+                {
+                    return new Numerus(previous);
+                }
+
+                previous = root;
+            }
+        }
+
+        public Numerus SqrtMath()
+        {
+            if (this._value <= 0L)
+            {
+                if (this._value < 0L)
+                {
+                    throw new InvalidOperationException($"Negative Numerus.");
+                }
+
+                return Numerus.Zero;
+            }
+
+            if (this._value == DecimalPart)
+            {
+                return Numerus.One;
+            }
+
+            long square = this._value * DecimalPart;
+            long root = (long)Math.Sqrt((double)this._value * DecimalPartD);
+
+            return (Numerus)root;
+        }
+
+        public Numerus SqrtBitOffset()
+        {
+            if (this._value <= 0L)
+            {
+                if (this._value < 0L)
+                {
+                    throw new InvalidOperationException($"Negative Numerus.");
+                }
+
+                return Numerus.Zero;
+            }
+
+            if (this._value == DecimalPart)
+            {
+                return Numerus.One;
+            }
+
+            long square = this._value * DecimalPart;
+            int powerOfTwo = BitOperations.Log2((ulong)square);
+            long root = square >> powerOfTwo;
             long previous = square;
             long rootDivision = 1L;
 
