@@ -7,7 +7,7 @@
 
         public static Text Empty = new Text(); 
 
-        public bool IsEmpty => string.IsNullOrEmpty(_value);
+        public bool IsEmpty => !_hasValue;
 
         #region Constructors
 
